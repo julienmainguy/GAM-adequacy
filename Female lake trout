@@ -16,10 +16,8 @@ library(tidyverse)
 
 ## Load the TROUT dataset as an example with a continuous response variable 
 
-file_name <- 
-"https://raw.githubusercontent.com/rachel-mc/Ecological-GAMM-examples/main/TROUT.txt"
-
-TROUT <- read.delim(file_name)
+url <- "https://raw.githubusercontent.com/julienmainguy/GAM-adequacy/refs/heads/main/TROUT.txt"
+TROUT <- read.delim(url)
 
 
 ## NON-LINEAR MIXED-EFFECTS VON BERTALANFFY GROWTH MODEL -----------------------
