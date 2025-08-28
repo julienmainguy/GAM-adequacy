@@ -19,81 +19,7 @@ library(tidyverse)
 url <- "https://raw.githubusercontent.com/julienmainguy/GAM-adequacy/refs/heads/main/TROUT.txt"
 TROUT <- read.delim(url)
 
-
-## NON-LINEAR MIXED-EFFECTS VON BERTALANFFY GROWTH MODEL -----------------------
-
-## Create a function for the von Bertalanffy (VB) growth equation (see Ogle 2016
-## and Ogle et al. 2025 for a description of the different growth parameters)
-
-VB <- function(x, Linf, K, t0) Linf * (1 - exp(-K * (x - t0)))
-
-## Estimate the starting values (sv) to be used in the nonlinear modeling with
-## findGrowthStarts() function of "FSA". Asking for a plot to be printed allows
-## to ensure that the global fit of the von Bertalanffy growth function to the
-## length-at-age data seems to provide a reasonably good fit.
-
-(sv_TROUT_VB <- findGrowthStarts(TL ~ AGE, 
-                                 data = TROUT,
-                                 type = "von Bertalanffy",
-                                 plot = TRUE))
-
-## Estimate the growth parameters for each LAKE (LAKE_PARMS) with the nlsList()
-## function of "nlme". There are no missing values (NA's) in the dataset, yet
-## the argument na.action = na.omit() is used to ensure that the nLslist() function
-## will properly work.
-
-LAKE_PARMS <- nlsList(TL ~ VB(AGE, Linf, K, t0) | LAKE,
-                      start = c(Linf = sv_TROUT_VB[[1]],
-                                K = sv_TROUT_VB[[2]],
-                                t0 = sv_TROUT_VB[[3]]),
-                      data = TROUT,
-                      na.action = na.omit)
-
-## Fit the non-linear mixed-effects von Bertalanffy growth model with the nlme()
-## function of "nlme"
-
-m_TROUT_VB <- nlme(TL ~ VB(AGE, Linf, K, t0),
-                        fixed = Linf + K + t0 ~ 1,
-                        random = Linf + K + t0 ~ 1 | LAKE,
-                        start = fixef(LAKE_PARMS),
-                        data = TROUT)
-
-summary(m_TROUT_VB)
-
-## The 95% confidence intervals for the three estimated growth parameters can be
-## obtained as follows, if needed:
-
-intervals(m_TROUT_VB, which = "fixed")
-
-## The same approach was applied using instead the Gompertz and logistic growth
-## functions (see Ogle et al. 2025 for equation-specific details), with the
-## Gompertz growth model failing at converging, whereas the logistic one converged
-## correctly but was found to exhibit a delta AIC of 4.32 relative to that of the
-## von Bertalanffy growth model, such that the latter was preferred (code and
-## analyses not shown). Finally, TL was predicted according to AGE from the 
-## nonlinear mixed-effects von Bertalanffy growth model (Fig. 1a) with the code
-## below. The related bootstrapped 95% CI is estimated with the boot_nlme() 
-## function of "nlme". This step can takes several minutes to run. For details,
-## see: https://cran.r-project.org/web/packages/nlraa/vignettes/Confidence-Bands.html
-
-nd <- expand.grid(AGE = seq(1, 50, 0.1), LAKE = c("BRULE", "REDDOG", "VOLTZ"))
-
-PRED_TL <- function(x) predict(x, newdata = nd, level = 0)
-
-TROUT_VB_BOOT <- boot_nlme(m_TROUT_VB, PRED_TL)
-
-TROUT_VB_BOOT_SUMMARY <- cbind(nd[,-4], summary_simulate(t(na.omit(TROUT_VB_BOOT$t))))
-
-TROUT_VB_FINAL <- aggregate(cbind(Estimate, Est.Error, Q2.5, Q97.5) ~ AGE,
-                                  data = TROUT_VB_BOOT_SUMMARY, FUN = "mean")
-
-## Calculate the marginal R2 and conditional R2 with the R2M() function of the
-## "nlraa" package (Miguez 2023)
-
-R2M(m_TROUT_VB)
-
-
-## GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) --------------------------
+## GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ##########################
 
 ## Fitting the Gaussian distribution, as done for the nonlinear mixed-effects von 
 ## Bertalanffy growth model, to a GAMM with the default parametrization for s(),
@@ -147,68 +73,6 @@ summary(m_TROUT_GAMMA_AD)
 
 gam.check(m_TROUT_GAUSSIAN_AD)
 
-## The same diagnostic plots with a simulated envelope relying on deviance 
-## residuals (default) using the appraise() function of "gratia", again for the
-## Gaussian GAMM with an adaptive smooth as an example.
-
-appraise(m_TROUT_GAUSSIAN_AD, method = "simulate")
-
-## Worm plot with a simulated envelope using the worm_plot() function of "gratia".
-## The default coverage level for the reference band (level = 0.90) is used but 
-## the default number of simulations used (50) is increased to 1000. Note that
-## the worm plot and related reference band will slightly change at each
-## iteration since simulations are used, similarly as for "hnp" (see below).
-
-worm_plot(m_TROUT_GAUSSIAN_AD, method = "simulate", n_simulate = 1000)
-
-## Looking at a series of worm plots for the alternative gamma GAMM with an
-## adaptive smooth suggests a similar fit and possibly problematic nonrandom 
-## pattern in the deviance residuals near zero for both distributions despite
-## most being found in the confidence band.
-
-worm_plot(m_TROUT_GAMMA_AD, method = "simulate", n_simulate = 1000)
-
-## Using different normality tests: (i) Anderson and Darling (1954) with the 
-## "nortest" package (Gross and Ligges 2015), (ii) Shapiro and Wilks (1965) with
-## the default "stats" package, and (iii) Jarque and Bera (1980) with the "moments"
-## package (Komsta and Novomestky 2022) for the Gaussian GAMM. These are only used
-## to approximately assess whether the behavior of the deviance residuals in the 
-## previous diagnostic plots appears to sufficiently correspond to a normal curve,
-## which seems to be the case in most instances.
-
-dev_resid_GAUSSIAN_AD <- residuals(m_TROUT_GAUSSIAN_AD, type = "deviance")
-
-ad.test(dev_resid_GAUSSIAN_AD)
-
-shapiro.test(dev_resid_GAUSSIAN_AD)
-
-jarque.test(dev_resid_GAUSSIAN_AD)
-
-## Using the testUniformity() function of "DHARMa" to assess whether the simulated
-## quantile residuals from the Gaussian GAMM with an adaptive smooth are sufficiently
-## uniformly distribution relative to the theoretical quantiles of the normal
-## distribution as a more adequate test. Model-based simulated residuals are first
-## produced and then be used for this specific test.
-
-simulationOutput <- simulateResiduals(fittedModel = m_TROUT_GAUSSIAN_AD)
-
-testUniformity(simulationOutput)
-
-## The same simulated residuals as above (i.e., simulationOutput) are used to
-## now assess whether they are sufficiently homogeneously distributed along the
-## rank-transformed model predictions. Note that in this case, homogeneity of 
-## variance is considered sufficient from relying on the test statistics, but
-## an uneven pattern is nonetheless visually detectable in the associated 
-## diagnostic plot given the low TL variation in young female lake trout that
-## we can once more visually detect in the diagnostic plot produced by DHARMa.
-
-testQuantiles(simulationOutput)
-
-## An approximate assessment for possible heteroscedasticity for the Gaussian GAMM
-## with an adaptive smooth according to the test of Harrison and McCabe (1979)
-## which is performed with the "lmtest" package (Zeiles and Hothorn 2002).
-
-hmctest(m_TROUT_GAUSSIAN_AD, point = 0.5, simulate.p = TRUE, nsim = 1000)
 
 ## Diagnostic half-normal plot of the deviance residuals using the hnp() 
 ## function of "hnp" and a newly-made available sfun() helper function for the
@@ -312,8 +176,9 @@ hnp(model,
 
 ## Perform 10 consecutive "hnp" runs to obtain a mode and a mean percentage of 
 ## the points outside the simulated envelope from the same gamma GAMM being 
-## assessed for adequacy. The set.seed() function is solely used for reproducibility. 
-## This step can take several minutes to run
+## assessed for adequacy. The set.seed() function is solely used for reproducibility.
+## The modal percentage is first calculated and then the mean with other descriptive
+## statistics. This step can take several minutes to run
 
 set.seed(2025)
 
@@ -330,6 +195,8 @@ for(i in 1:10) {
 
 hnp_summary <- sapply(hfun, function(x) x$out / x$total * 100) 
 
+## Modal percentage as estimated from a density curve
+
 return_max <- function(numvec) {
   dens <- density(numvec)
   return(dens$x[which.max(dens$y)][1])
@@ -337,7 +204,10 @@ return_max <- function(numvec) {
 
 round(return_max(hnp_summary), 2)
 
+## Descriptive statistics, including the mean
+
 Summarize(hnp_summary)
+
 
 ## Diagnostic plots using the getviz(), check1D(), and l_gridCheck1D() functions 
 ## of "mgcViz" with 100 model-derived simulations (nsim) for an "mgcv" object, here
@@ -409,13 +279,8 @@ upper_ui <- (quantile(summary_mgcViz, probs = 0.975))[[1]]
 
 cbind(mgcViz_score, lower_ui, upper_ui)
 
-## Check for potential concurvity issues. Smooth terms should have an estimate
-## index < 0.5 (Kovács, 2024)
 
-concurvity(m_TROUT_GAMMA_AD)
-
-
-## MODEL SELECTION -------------------------------------------------------------
+## MODEL SELECTION #############################################################
 
 ## Compare Maximum Likelihood scores while accounting for model complexity (Edf) 
 ## for the two candidates GAMMs using the compareML() function of "itsadug". The
@@ -426,18 +291,8 @@ compareML(m_TROUT_GAUSSIAN_AD, m_TROUT_GAMMA_AD)
 ## Compare the two candidate gamma GAMMs fitted in "mgcv" based on AICc under
 ## an information-theoretic approach using the model.sel() function of "MuMIn".
 
-model.sel(m_TROUT_GAUSSIAN_AD, m_TROUT_GAMMA_AD)
+model.sel(m_TROUT_GAUSSIAN_AD, m_TROUT_GAMMA_AD, rank = BICc)
 
-## Compare the candidate gamma GAMMs fitted in "mgcv" according to a test based
-## on the Bayes Factor (BF) using the test_bf() function of "performance". Note
-## that the first model listed is used as the reference level.
-
-test_bf(m_TROUT_GAUSSIAN_AD, m_TROUT_GAMMA_AD)
-
-## Compare the non-linear mixed-effects von Bertalanffy growth model with the
-## "mgcv" Gamma GAMM using an adaptive smooth using the AIC() function.
-
-AIC(m_TROUT_VB, m_TROUT_GAMMA_AD)
 
 ## Refit the gamma GAMM using an adaptive smooth with REML estimation in "mgcv"
 
@@ -449,7 +304,7 @@ m_TROUT_GAMMA_AD_REML <- gam(TL ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re")
 summary(m_TROUT_GAMMA_AD_REML)
 
 
-## "IN-SAMPLE" PREDICTIVE PERFORMANCE ------------------------------------------
+## "IN-SAMPLE" PREDICTIVE PERFORMANCE ##########################################
 
 ## Estimate the deviance explained (D2) and its adjusted version (D2_adj) for
 ## the preferred gamma GAMM using an adaptive smooth relying on REML estimation.
@@ -463,48 +318,10 @@ logLik <- logLik(model)
 K <- attributes(logLik)$df
 n <- summary(model)$n
 D2_adj <- 100 - ((n - 1) / (n - K) * (100 - D2))
-cbind(D2, D2_adj)
-
-## Estimate the contribution of the fixed AGE effect and the random LAKE effect
-## to the estimated D2 of the gamma GAMM using REML with "gam.hp"
-
-gam.hp(m_TROUT_GAMMA_AD_REML)
+round(cbind(D2, D2_adj), 1)
 
 
-## MODEL PREDICTIONS -----------------------------------------------------------
-
-## Visualization of the partial residuals of the fixed AGE effect and the random
-## LAKE effect (i.e., factor) at the linear predictor scale with "visreg" for 
-## the gamma GAMM with an adaptive smooth using REML. The predictions can also
-## be visualized at the response scale, with both predictors being sequentially
-## shown each time.
-
-visreg(m_TROUT_GAMMA_AD_REML, scale = "linear")
-
-visreg(m_TROUT_GAMMA_AD_REML, scale = "response")
-
-## Predictions from the initial Gaussian GAMM using thin-plate regression splines.
-## The argument exclude = "s(LAKE)" is used to provide predictions for the fixed
-## effects only. As such, providing only one of the different considered levels 
-## for the random effect is sufficient in the new data upon which the predictions
-## will be made.
-
-model <- m_TROUT_GAUSSIAN_TP
-
-nd_TROUT <- data.frame(AGE = seq(1, 50, by = 0.1), LAKE = "BRULE")
-
-fitted <- predict(model,
-                  nd_TROUT,
-                  type = "link",
-                  exclude = "s(LAKE)",
-                  se.fit = TRUE)
-
-estimate <- fitted$fit
-lower_ci <- fitted$fit - 1.96 * fitted$se.fit
-upper_ci <- fitted$fit + 1.96 * fitted$se.fit
-
-age <- nd_TROUT$AGE
-cbind(age, estimate, lower_ci, upper_ci)
+## MODEL PREDICTIONS ##########################################################
 
 ## Predictions from the best-retained gamma GAMM with REML estimation (Fig. 1c).
 ## Note that the predictions are at the log link scale, such that exponentiation
@@ -528,31 +345,3 @@ upper_ci <- exp(fitted$fit + 1.96 * fitted$se.fit)
 age <- nd_TROUT$AGE
 cbind(age, estimate, lower_ci, upper_ci)
 
-
-## REFERENCES (NOT CITED IN THE MAIN TEXT) -------------------------------------
-
-## Anderson TW, Darling DA (1954) A test of goodness of fit. J Am Stat Assoc 49:
-##    765–769
-
-## Forbes C, Evans M, Hastings N et al. (2010) Gamma distribution. In: Forbes C,
-##    Evans M, Hastings N et al (eds) Statistical distributions, 4th edn. John 
-##    Wiley & Sons, New Jersey, pp 109–113.
-
-## Gross J, Ligges U (2015) nortest: Tests for normality. R package version 1.0-4.
-##    https://CRAN.R-project.org/package=nortest
-
-## Jarque CM, Bera AK (1980) Efficient tests for normality, homoscedasticity and
-##    serial independence of regression residuals. Econ Lett 6:255–259
-
-## Komsta L, Novomestky F (2022) moments: Moments, cumulants, skewness, kurtosis
-##    and related tests. R package version 0.14.1.
-##    https://CRAN.R-project.org/package=moments
-
-## Miguez F (2023) nlraa: Nonlinear regression for agricultural applications.
-##    R package version 1.9.7. https://CRAN.R-project.org/package=nlraa
-
-## Shapiro SS, Wilk MB (1965) An analysis of variance test for normality (complete
-##    samples). Biometrika 52:591-611
-
-## Zeileis A, Hothorn T (2002) Diagnostic checking in regression relationships. R
-##    News 2:7-10
