@@ -10,6 +10,17 @@ library(performance)
 library(tidyverse)
 
 
+## Function for the calculation of the sample-adjusted BIC (BICc)
+
+BICc <- function (obj) {
+  bic <- BIC(obj)
+  n <- obj$df.null + 1
+  p <- n - obj$df.residual
+  bicc <- bic + (log(n) * (p + 1) * p)/(n - p - 1)
+  return(bicc)
+}
+
+
 ################################################################################
 ######## EXAMPLE 1: LENGTH-AT-AGE RELATIONSHIP IN FEMALE LAKE TROUT ############
 ################################################################################
