@@ -522,7 +522,7 @@ sfun <- function(n, obj) {
               size = size,
               prob = p_hat)
   return(y)
-  }
+}
 
 ffun <- function(new_response) {
   data_copy <- data
