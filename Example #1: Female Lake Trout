@@ -27,7 +27,7 @@ BICc <- function (obj) {
 
 ## Load the TROUT dataset as an example with a continuous response variable 
 
-url <- "https://raw.githubusercontent.com/julienmainguy/GAM-adequacy/refs/heads/main/TROUT.txt"
+url <- "https://raw.githubusercontent.com/julienmainguy/GAM-adequacy/refs/heads/main/TROUT"
 TROUT <- read.delim(url)
 
 ## GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ##########################
@@ -341,7 +341,7 @@ round(cbind(D2, D2_adj), 1)
 model <- m_TROUT_GAMMA_AD_REML
 
 nd_TROUT <- data.frame(AGE = seq(1, 50, by = 0.1),
-                       LAKE = "BRULE")
+                       LAKE = "NA")
 
 fitted <- predict(model,
                   nd_TROUT,
