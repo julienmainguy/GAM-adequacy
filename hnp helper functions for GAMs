@@ -523,7 +523,7 @@ sfun <- function(n, obj) {
 }
 
 ffun <- function(new_response) {
-  gam(cbind(new_response, TOTAL - new_response) ~ BIN50 + s(RIVER, bs = "re"),
+  gam(cbind(new_response, TOTAL - new_response) ~ s(X1) + X2 + s(X3, bs = "re"),
       family = family,
       method = method,
       data = data)
