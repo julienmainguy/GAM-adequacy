@@ -9,39 +9,42 @@ library(mgcv)
 ################################################################################
 
 ## Up to now, "hnp" was unable to assess the adequacy of GAMs (and GAMMs) fitted 
-## in "mgcv". Three helper functions are now available to allow such assessment,
-## namely the dfun(), sfun(), and ffun() functions, which are all described below.
-## Note that the dfun() function remains the same at all times.
+## in "mgcv". Helper functions are now available to allow such assessment, namely
+## the dfun(), sfun(), and ffun() functions, which are all described below.
 
-## dfun(): a helper function to extract the deviance residuals of a model.
+##                               ***IMPORTANT***
+##      - the dfun() function remains the same at all times.
+##      - the sfun() function has to be adapted to the distribution family used
+##      - the ffun() function has to be adapted to the specifications of the model
+
+
+## dfun(): a helper function to extract the deviance (or other type of) residuals of a model.
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
-## sfun(): a helper function to perform empirically-derived simulations to 
-## determine how the residuals should behave under the distributional assumptions  
-## of the fitted GAM. This helper function is specific to the family being used.
 
-## sfun() takes the following form:
+## sfun(): a helper function to perform empirically-derived simulations to determine
+## how the residuals should behave under the distributional assumptions of the fitted GAM.
+## This helper function is specific to the distribution family being used.
+## sfun() takes the following general form:
 
 sfun <- function(n, obj) {
-  y <- ## specific to the considered family - see examples below
-  return(y)
+        y <- ## specific to the considered family - see examples below
+        return(y)
 }
 
-## ffun(): a helper function to refit the model 99 times (default value) for 
-## each new simulated response. This function is also specific to the model being
-## assessed. 
 
-## Sample construction of the ffun() helper function:
-
-## First define the fitted model, family, method, and data used.
+## ffun(): a helper function to refit the model 99 times (default value). 
+## This function is also specific to the model being assessed
+## First, define the fitted model, family, method, and data used
 
 model <- ## model name
 family <- ## family used, such as poisson or nb (i.e., NB2)
 method <- ## method used, such as "ML" or "REML"
 data <- ## name of dataset
 
-## Then, type the right-hand side of the fitted model formula next to 'resp ~ '
+
+## Then, the right-hand side of the fitted model formula must be provided (i.e., next to *resp ~ *)
 
 ffun <- function(resp) {
   gam(resp ~ ## indicate the right-hand side of the fitted model formula
@@ -50,16 +53,16 @@ ffun <- function(resp) {
       data = data)
 }
 
-# The hnp() syntax below can be used for all "mgcv" GAMs and GAMMs -------------
+
+## The hnp() syntax below can be used for all "mgcv" GAMs and GAMMs ##################################
 
 ## The hnp() function can now be used to assess the adequacy of an "mgcv" object
-## by relying on the three previously defined helper functions. Here, 
-## a single "hnp" iteration will be performed based on 99 simulations (default).
-## The argument how.many.out = TRUE will indicate the percentage of residuals
+## by relying on the three previously defined helper functions. Here, a single "hnp" iteration
+## will be performed. The argument how.many.out = TRUE will indicate the percentage of residuals
 ## found outside the simulated envelope of the half-normal plot. The corresponding
 ## half-normal plot will be shown with the argument plot = TRUE. The argument
 ## paint = TRUE will show the residuals found outside the envelope in red. The
-## code below is just provided as an example and thus will not work if run.
+## code below is just provided as an example and thus, will not work if run.
 
 hnp(model, ## same as the GAM or GAMM that was defined above
     newclass = TRUE, 
@@ -70,13 +73,14 @@ hnp(model, ## same as the GAM or GAMM that was defined above
     plot = TRUE, 
     paint = TRUE)
 
+
 ## The iterative process below can be used for all GAMs and GAMMs fitted in "mgcv".
 ## The specific dfun(), sfun(), and ffun() helper functions can be used to obtain 
-## a mode and a mean percentage of residuals found outside the simulated
-## envelope given the number of iterations (n) specified by the user.
+## a modal and a mean percentage of residuals found outside the simulated
+## envelope based on the number of iterations (n) specified by the user.
 ## 10 "hnp" iterations are performed below. The set.seed() function is solely
 ## used for result reproducibility. This code generates a list of results
-## saved as an object called "hnp_obj" and is applicable to any model (stored 
+## saved as an object called "hnp_obj" below and is applicable to any model (stored 
 ## as this alias) for which the dfun(), sfun(), and ffun() helper functions 
 ## have been previously correctly defined.
 
@@ -95,10 +99,12 @@ for (i in 1:n) {
                       plot.sim = FALSE)
 }
 
+
 ## Calculate the percentage of residuals found outside the simulated envelope of 
 ## each "hnp" iteration and store it in an object referred to as hnp_summary
 
 hnp_summary <- sapply(hnp_obj, function(x) x$out / x$total * 100) 
+
 
 ## Obtain the mode percentage (asymptotic value) from the associated density curve
 
@@ -109,17 +115,20 @@ return_max <- function(numvec) {
 
 round(return_max(hnp_summary), 2)
 
+
 ## Descriptive statistics, including the mean percentage, using the Summarize() 
 ## function of the "FSA" package
 
 Summarize(hnp_summary)
 
-# GAUSSIAN DISTRIBUTION AND IDENTITY LINK  -------------------------------------
+
+## GAUSSIAN DISTRIBUTION AND IDENTITY LINK ###################################################
 
 ## Below, a fictive GAMM for which the deviance residuals are expected to
-## approximate a normal distribution is provided as an example.
+## approximate a normal distribution (and to be homoscedastic) is provided as an example.
 
-## Simulate continuous data using the normal distribution 
+## Simulate continuous data using the normal distribution
+## Also assign random effect to each observation (stochastic error)
 
 set.seed(2025)
 
@@ -128,13 +137,14 @@ X2 <- rnorm(n = 300)
 X3 <- factor(sample(1:5, size = 300, replace = TRUE)) # factor with 5 levels for the random effect
 
 Y <- X1^3 + 5 * X2 + rnorm(nlevels(X3))[as.numeric(X3)] + rnorm(n = 300, mean = 1, sd = 2) 
-# assign random effect to each observation
-# + stochastic error
+
+## The simulated dataset is referred to as CONTINUOUS
 
 CONTINUOUS <- data.frame(Y = Y,
                          X1 = X1,
                          X2 = X2,
                          X3 = X3)
+
 
 ## Fit a Gaussian GAMM
 
@@ -143,6 +153,9 @@ GAMM_GAUSSIAN <- gam(Y ~ s(X1) + X2 + s(X3, bs = "re"),
                     method = "REML",
                     data = CONTINUOUS) 
 
+summary(GAMM_GAUSSIAN)
+
+
 ## Pre-define the information needed for ffun()
 
 model <- GAMM_GAUSSIAN 
@@ -150,9 +163,11 @@ family <- gaussian(link = "identity")
 method <- "REML"  
 data <- CONTINUOUS
 
+
 ## Helper function to extract the deviance residuals
 
 dfun <- function(obj) resid(obj, type = "deviance")
+
 
 ## Helper function to simulate how the residuals should behave given the
 ## distributional assumptions of the model being investigated. 
@@ -165,6 +180,7 @@ sfun <- function(n, obj) {
    return(y)
 }
 
+
 ## Helper function to refit the model 99 times at each iteration 
 
 ffun <- function(resp) {
@@ -174,9 +190,8 @@ ffun <- function(resp) {
       data = data)
 }
 
-## Asking for a single "hnp" iteration
 
-set.seed(2025)
+## Asking for a single "hnp" diagnostic plot
 
 hnp(model,
     newclass = TRUE, 
@@ -187,8 +202,11 @@ hnp(model,
     plot = TRUE, 
     paint = TRUE)
 
-## Performing 10 "hnp" iterations to obtain a mode and a mean percentage of 
+
+## Performing 10 "hnp" iterations to obtain a modal and a mean percentage of 
 ## residuals outside the simulated envelope
+
+set.seed(2025)
 
 n <- 10
 
@@ -219,12 +237,9 @@ round(return_max(hnp_summary), 2)
 Summarize(hnp_summary)
 
 
-## GAMMA DISTRIBUTION AND LOG LINK ---------------------------------------------
+## GAMMA DISTRIBUTION AND LOG LINK ###############################################
 
 ## Simulate a new continuous response variable using the Gamma distribution 
-
-set.seed(2025)
-
 ## Use the same X1, X2, and X3 as defined above, with Y requiring to be non-zero
 ## and only positive to allow the use of the gamma distribution and a log link.
 
@@ -274,6 +289,9 @@ hnp(model,
     plot = TRUE, 
     paint = TRUE)
 
+
+## 10 hnp iterations to get a modal and mean percentage
+
 n <- 10
 
 hnp_obj <- list()
@@ -299,16 +317,18 @@ round(return_max(hnp_summary), 2)
 Summarize(hnp_summary)
 
 
-## POISSON DISTRIBUTION AND LOG LINK -------------------------------------------
+## POISSON DISTRIBUTION AND LOG LINK #########################################################################
 
 ## Simulate data from the type-II negative binomial (NB2) distribution to 
-## illustrate that the Poisson distribution is inadequate for such overdispersed
+## illustrate that the Poisson distribution is inadequate to model such overdispersed
 ## count data.
 
 set.seed(2025)
 
+## use the same predictor X1, X2, and X3 as above
+
 mu <- exp(1 + 2* X1 - 1.5 * X2 + 0.38 * as.numeric(X3))  # log link
-# same X1, X2, and X3 as above
+
 Y <- rnbinom(n = 300, mu = mu, size = 3)
 
 COUNT <- data.frame(Y = Y,
