@@ -87,13 +87,13 @@ method <- "REML"
 data <- CHARR
 size <- CHARR$TOTAL
 
+dfun <- function(obj) resid(obj, type = "deviance")
+
 sfun <- function(n, obj) {
   p_hat <- predict(obj, type = "response")
   y <- rbinom(n = n, size = size, prob = p_hat)
   return(y)
 }
-
-dfun <- function(obj) resid(obj, type = "deviance")
 
 ffun <- function(new_response) {
   gam(cbind(new_response, TOTAL - new_response) ~ BIN50 + s(RIVER, bs = "re"),
@@ -114,8 +114,11 @@ hnp(model,
 ## 10 "hnp" iterations
 
 set.seed(2025)
+
+n <- 10
+
 hnp_obj <- list()
-for(i in 1:10) {
+for(i in 1:n) {
   hnp_obj[[i]] <- hnp(model, 
                       newclass = TRUE, 
                       diagfun = dfun, 
