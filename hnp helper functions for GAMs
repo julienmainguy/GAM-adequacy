@@ -135,7 +135,7 @@ set.seed(2025)
 
 X1 <- rnorm(n = 300)
 X2 <- rnorm(n = 300)
-X3 <- factor(sample(1:5, size = 300, replace = TRUE))         ## factor with 5 levels for the random effect
+X3 <- factor(sample(1:5, size = 300, replace = TRUE))    ## factor with 5 levels for the random effect
 
 Y <- X1^3 + 5 * X2 + rnorm(nlevels(X3))[as.numeric(X3)] + rnorm(n = 300, mean = 1, sd = 2) 
 
@@ -315,7 +315,7 @@ round(return_max(hnp_summary), 2)
 Summarize(hnp_summary)
 
 
-## POISSON DISTRIBUTION AND LOG LINK #########################################################################
+## POISSON DISTRIBUTION AND LOG LINK ########################################################
 
 ## Simulate data from the type-II negative binomial (NB2) distribution to 
 ## illustrate that the Poisson distribution is inadequate to model such overdispersed
