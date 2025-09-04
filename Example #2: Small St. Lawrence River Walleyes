@@ -1,8 +1,6 @@
 ## Required packages:
 
 library(FSA)
-library(gam.hp)
-library(gratia)
 library(hnp)
 library(itsadug)
 library(mgcv)
@@ -10,7 +8,8 @@ library(mgcViz)
 library(MuMIn)
 library(performance)
 library(tidyverse)
-library(visreg)
+
+***BICc***
 
 ################################################################################
 #### EXAMPLE 2: CPUE TEMPORAL TREND OF SMALL ST. LAWRENCE RIVER WALLEYES #######
@@ -19,7 +18,7 @@ library(visreg)
 ## Load the WALLEYE dataset as an example with counts 
 
 file_name <- 
-"https://raw.githubusercontent.com/rachel-mc/Ecological-GAMM-examples/main/WALLEYE.txt"
+"https://raw.githubusercontent.com/julienmainguy/GAM-adequacy/main/WALLEYE.txt"
 
 WALLEYE <- read.delim(file_name)
 
