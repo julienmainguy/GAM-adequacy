@@ -523,14 +523,11 @@ sfun <- function(n, obj) {
 }
 
 ffun <- function(new_response) {
-  data_copy <- data
-  data_copy$new_response <- new_response
-  
-  gam(cbind(new_response, TOTAL - new_response) ~ s(X1) + X2 + s(X3, bs = "re"),
+  gam(cbind(new_response, TOTAL - new_response) ~ BIN50 + s(RIVER, bs = "re"),
       family = family,
       method = method,
-      data = data_copy)
-  }
+      data = data)
+}
 
 hnp(model,
     newclass = TRUE, 
