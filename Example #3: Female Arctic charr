@@ -1,0 +1,235 @@
+## Required packages:
+
+library(FSA)
+library(hnp)
+library(itsadug)
+library(MASS)
+library(mgcv)
+library(mgcViz)
+library(MuMIn)
+library(performance)
+library(tidyverse)
+
+BICc&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+################################################################################
+########## EXAMPLE 3: SPAWNING PROBABILITY OF ARCTIC CHARR FEMALES #############
+################################################################################
+
+## Load the CHARR dataset as an example with discrete proportions 
+
+file_name <- 
+"https://raw.githubusercontent.com/julienmainguy/GAM-adequacy/main/CHARR"
+
+CHARR <- read.delim(file_name)
+
+
+## GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ###########################
+
+## Here the GAMMs will be identified with *_MGCV_* or *_GAMLSS_* given that both
+## packages will be used in this last example.
+
+## A binomial (BI) GAMM is fitted in "mgcv" with a complementary log-log (cloglog)
+## link, which was previously used to model these data as Bernoulli trials (0/1)
+## by Mainguy et al. (under review). A smooth function is applied to BIN50 to check
+## if additional non-linearities are present in the binomial regression curve
+## from modeling the same data as discrete proportions instead.
+
+CHARR$RIVER <- as.factor(CHARR$RIVER)
+
+m_CHARR_BI <- gam(cbind(YES, TOTAL - YES) ~ s(BIN50) + s(RIVER, bs = "re"),
+                       family = binomial(link = "cloglog"),
+                       method = "ML",
+                       data = CHARR)
+
+summary(m_CHARR_BI)
+
+
+## As edf = 1 for s(BIN50), this fixed predictor is refitted as a parametric
+## component instead using the same model name and now with REML estimation given
+## that this model will not be compared to other candidate models.
+
+m_CHARR_BI_REML <- gam(cbind(YES, TOTAL - YES) ~ BIN50 + s(RIVER, bs = "re"),
+                            family = binomial(link = "cloglog"),
+                            method = "REML",
+                            data = CHARR)
+
+summary(m_CHARR_BI_REML)
+
+## Estimate the L50 using the fixed effects, where b0 is the intercept coefficient
+## and b1 is the coefficient associated to BIN50 (i.e., slope). The equation used
+## to estimate the L50 when a cloglog link is used is detailed in the Supplementary
+## Material of Mainguy et al. (2024).
+
+b0 <- coef(m_CHARR_BI_REML)[[1]]
+b1 <- coef(m_CHARR_BI_REML)[[2]]
+((-b0 - 0.3665129) / b1)
+
+
+## Estimate the L50 using the dose.p() function of "MASS" to also obtain the 
+## standard error (SE), which is calculated using the Delta method.
+
+dose.p(m_CHARR_BI_REML)
+
+
+## MODEL ADEQUACY ####################################################################
+
+## Diagnostic plots using the gam.check() function of "mgcv".
+
+gam.check(m_CHARR_BI_REML)
+
+
+## Adequacy assessment using "hnp" for "mgcv": helper functions and 1 iteration.
+
+model <- m_CHARR_BI_REML
+family <- binomial(link = "cloglog")
+method <- "REML"
+data <- CHARR
+size <- CHARR$TOTAL
+
+sfun <- function(n, obj) {
+  p_hat <- predict(obj, type = "response")
+  y <- rbinom(n = n, size = size, prob = p_hat)
+  return(y)
+}
+
+dfun <- function(obj) resid(obj, type = "deviance")
+
+ffun <- function(new_response) {
+  gam(cbind(new_response, TOTAL - new_response) ~ BIN50 + s(RIVER, bs = "re"),
+      family = family,
+      method = method,
+      data = data)
+}
+
+hnp(model,
+    newclass = TRUE,
+    simfun = sfun,
+    fitfun = ffun,
+    diagfun = dfun, 
+    how.many.out = TRUE,
+    paint = TRUE,
+    ylab = "Deviance residuals")
+
+## 10 "hnp" iterations
+
+set.seed(2025)
+hnp_obj <- list()
+for(i in 1:10) {
+  hnp_obj[[i]] <- hnp(model, 
+                      newclass = TRUE, 
+                      diagfun = dfun, 
+                      simfun = sfun,
+                      fitfun = ffun, 
+                      how.many.out = TRUE, 
+                      plot.sim = FALSE)
+}
+
+hnp_summary <- sapply(hnp_obj, function(x) x$out/x$total*100)
+
+return_max <- function(numvec) {
+  dens <- density(numvec)
+  return(dens$x[which.max(dens$y)][1])
+}
+
+round(return_max(hnp_summary), 2)
+
+Summarize(hnp_summary)
+
+## Calculate the mgcViz score (mean %) for a given model based on 
+## 100 iterations. A 95% "uncertainty interval" (ui) is also calculated.
+## This can take several seconds to run.
+
+set.seed(2025)
+
+model <- m_CHARR_MGCV_BI_REML
+predictor <- "BIN50"
+
+viz_fun <- function(model, predictor) {
+  viz <- getViz(model, nsim = 100)
+  plot <- check1D(viz, predictor) + l_gridCheck1D(n = 100)
+  diag_plot <- plot$ggObj
+  est <- diag_plot$layers[[1]]$data
+  ll <- diag_plot$layers[[3]]$data$ll
+  ul <- diag_plot$layers[[3]]$data$ul
+  diag <- cbind(est, ll, ul)
+  diagnostic <- mutate(diag,
+                       ll_diff = y - ll,
+                       ul_diff = ul - y,
+                       test = ll_diff * ul_diff)
+  n <- length(diagnostic$test)
+  i_n <- sum(diagnostic$test >= 0)
+  mgcViz_perc <- i_n / n * 100
+  mgcViz_perc
+}
+
+summary_mgcViz <- replicate(100, viz_fun(model, predictor))
+
+mgcViz_score <- mean(summary_mgcViz)
+lower_ui <- (quantile(summary_mgcViz, probs = 0.025))[[1]]
+upper_ui <- (quantile(summary_mgcViz, probs = 0.975))[[1]]
+
+cbind(mgcViz_score, lower_ui, upper_ui)
+
+
+
+
+## The related half-normal plot suggests weak overdispersion. Because this simple
+## binomial GAM has been fitted in "mgcv", this also allows to test for likely
+## overdispersion with "DHARMa" which can also test for possible zero-inflation.
+## Overdispersion is specifically assessed (as opposed to equidispersion) by also
+## using the argument alternative = "greater" with the testDispersion() function.
+
+simulationOuput <- simulateResiduals(fittedModel=m_CHARR_MGCV_NRS_BI)
+
+testDispersion(simulationOuput, alternative = "greater")
+
+## Using the same simulated randomized quantile residuals that were produced above,
+## the testZeroInflation() function is used to assess a possible excess of observed
+## zeros relative to those being predicted, which appears unlikely given that the
+## zero-inflated binomial and zero-inflated beta-binomial were both discarded.
+
+testZeroInflation(simulationOuput)
+
+## With detected overdispersion, but no evidence for zero-inflation, the binomial
+## GAM is not sufficiently adequate to model these slightly overdispersed discrete
+## proportions, such that the adequate beta-binomial that handles the extra-binomial
+## variation is the logical choice.
+
+
+## MODEL SELECTION -------------------------------------------------------------
+
+## "IN-SAMPLE" PREDICTIVE PERFORMANCE ##############################################
+
+## Estimate the deviance explained (D2) and its adjusted version (D2_adj) for
+## the BI GAMM in "mgcv" that relies on REML estimation.
+
+model <- m_CHARR_BI_REML 
+
+D2 <- 100 * (1 - model$deviance / model$null.deviance)
+logLik <- logLik(model)
+K <- attributes(logLik)$df
+n <- summary(model)$n
+D2_adj <- 100 - ((n - 1) / (n - K) * (100 - D2))
+cbind(D2, D2_adj)
+
+
+## MODEL PREDICTIONS ###############################################################
+
+nd_CHARR <- data.frame(BIN50 = seq(175, 675, by = 1), RIVER = "NA")
+
+model <- m_CHARR_BI_REML
+
+fitted <- predict(model,
+                  nd_CHARR,
+                  type = "link",
+                  exclude = "s(RIVER)",
+                  se.fit = TRUE)
+
+pred <- 1 - exp(-exp(fitted$fit))
+lower <- 1 - exp(-exp(fitted$fit - 1.96 * fitted$se.fit))
+upper <- 1 - exp(-exp(fitted$fit + 1.96 * fitted$se.fit))
+
+bin50 <- nd_CHARR$BIN50
+cbind(bin50, pred, lower, upper)
+
