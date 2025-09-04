@@ -10,7 +10,7 @@ library(performance)
 library(tidyverse)
 
 
-## Function for the calculation of the sample-adjusted BIC (BICc)
+## Create a function for the calculation of the sample-adjusted BIC (BICc)
 
 BICc <- function (obj) {
   bic <- BIC(obj)
