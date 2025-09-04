@@ -148,7 +148,7 @@ return_max <- function(numvec) {
   return(dens$x[which.max(dens$y)][1])
 }
 
-## Mode percentage of residuals outside the simulated envelope
+## Modal percentage of residuals outside the simulated envelope
 
 round(return_max(hnp_summary), 2)
 
