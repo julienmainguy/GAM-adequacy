@@ -264,7 +264,7 @@ data <- NON_ZERO_POSITIVE_CONTINUOUS
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
-sfun <- function(n, obj) {
+sfun <- function(n, obj) {??????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
   y <- rgamma(nrow(data),
               shape = shape,
               rate = shape / predict(obj, type = "response"))
@@ -352,7 +352,7 @@ sfun <- function(n,obj) {
   y <- rpois(nrow(data),
              lambda = predict(model, type = "response"))
   return(y)
-  }
+ }
 
 ffun <- function(resp) {
   gam(resp ~ s(X1) + X2 + s(X3, bs = "re"),
@@ -360,8 +360,6 @@ ffun <- function(resp) {
       method = method,
       data = data)
 }
-
-set.seed(2025)
 
 hnp(model,
     newclass = TRUE, 
@@ -371,6 +369,11 @@ hnp(model,
     how.many.out = TRUE, 
     plot = TRUE, 
     paint = TRUE)
+
+
+## 10 hnp iterations to get a modal and mean percentage
+
+set.seed(2025)
 
 n <- 10
 
@@ -397,7 +400,7 @@ round(return_max(hnp_summary), 2)
 Summarize(hnp_summary)
 
 
-## TYPE-II NEGATIVE BINOMIAL (NB2) WITH LOG LINK -------------------------------
+## TYPE-II NEGATIVE BINOMIAL (NB2) WITH LOG LINK ##################################
 
 GAMM_NB2 <- gam(Y ~ s(X1) + X2 + s(X3, bs = "re"), 
                     family = nb, ## same as family = nb(theta = NULL, link = "log")
@@ -425,8 +428,6 @@ ffun <- function(resp) {
       data = data)
 }
 
-set.seed(2025)
-
 hnp(model,
     newclass = TRUE, 
     diagfun = dfun, 
@@ -435,6 +436,11 @@ hnp(model,
     how.many.out = TRUE, 
     plot = TRUE, 
     paint = TRUE)
+
+
+## 10 hnp iterations to get a modal and mean percentage
+
+set.seed(2025)
 
 n <- 10
 
@@ -460,11 +466,12 @@ round(return_max(hnp_summary), 2)
 
 Summarize(hnp_summary)
 
+
 ## The Poisson model was inadequate to model such overdispersed data. Based on 
-## the mode and mean % above, this NB2 GAMM is adequate. 
+## the modal and mean % obtained above, but the NB2 GAMM is sufficiently adequate. 
 
 
-## BINOMIAL DISTRIBUTION AND LOGIT LINK (analysis of discrete proportions) -----
+## BINOMIAL DISTRIBUTION AND LOGIT LINK (analysis of discrete proportions) #########
 
 ## Generate new data
 
@@ -475,8 +482,9 @@ X2 <- rnorm(n = 300)
 X3 <- factor(sample(1:7, size = 300, replace = TRUE))
 TOTAL <- sample(5:20, size = 300, replace = TRUE)
 
-eta <- 0.4 + X1^3 + 1.5 * X2 - 0.6 * as.numeric(X3) # systematic component using
-## X1, X2, and X3 defined above
+# systematic component using X1, X2, and X3 defined above:
+
+eta <- 0.4 + X1^3 + 1.5 * X2 - 0.6 * as.numeric(X3) 
 p <- 1 / (1 + exp(-eta)) # probabilities
 p_star <- pmin(pmax(p, 1e-6), 1 - 1e-6) # avoid probabilities of exactly 0 or 1
 
@@ -492,6 +500,9 @@ GAMM_BINOMIAL_LOGIT <- gam(cbind(YES, TOTAL - YES) ~ s(X1) + X2 + s(X3, bs = "re
                            family = binomial, ## same as binomial(link = "logit")
                            method = "REML",
                            data = DISCRETE_PROP) 
+
+summary(GAMM_BINOMIAL_LOGIT)
+
 
 ## For discrete proportions, size (i.e., the denominator) must also be provided
 ## within the simulation function. In this fictive dataset (DISCRETE_PROP), size
@@ -523,8 +534,6 @@ ffun <- function(new_response) {
       data = data_copy)
   }
 
-set.seed(2025)
-
 hnp(model,
     newclass = TRUE, 
     diagfun = dfun, 
@@ -533,6 +542,11 @@ hnp(model,
     how.many.out = TRUE, 
     plot = TRUE, 
     paint = TRUE)
+
+
+## 10 hnp iterations to get a modal and mean percentage
+
+set.seed(2025)
 
 n <- 10
 
@@ -557,3 +571,4 @@ return_max <- function(numvec) {
 round(return_max(hnp_summary), 2)
 
 Summarize(hnp_summary)
+
