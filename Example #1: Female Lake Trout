@@ -75,7 +75,7 @@ m_TROUT_GAMMA_AD <- gam(TL ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re"),
 summary(m_TROUT_GAMMA_AD)
 
 
-## MODEL ADEQUACY --------------------------------------------------------------
+## MODEL ADEQUACY ####################################################################
 
 ## Diagnostic plots with the gam.check() function of "mgcv" for the Gaussian
 ## GAMM with an adaptive smooth. Similar diagnostic plots are produced for the
