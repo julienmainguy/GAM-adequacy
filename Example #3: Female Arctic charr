@@ -1,5 +1,6 @@
 ## Required packages:
 
+library(DHARMa)
 library(FSA)
 library(hnp)
 library(itsadug)
@@ -76,10 +77,10 @@ b1 <- coef(m_CHARR_BI_REML)[[2]]
 ((-b0 - 0.3665129) / b1)
 
 
-## Estimate the L50 using the dose.p() function of "MASS" to also obtain the 
-## standard error (SE), which is calculated using the Delta method.
+## Estimate the L50 using the dose.p() function of "MASS" to also obtain the $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+## standard error (SE), which is calculated using the Delta method. $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-dose.p(m_CHARR_BI_REML)
+dose.p(m_CHARR_BI_REML) $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 
 ## MODEL ADEQUACY ####################################################################
@@ -155,7 +156,7 @@ Summarize(hnp_summary)
 
 set.seed(2025)
 
-model <- m_CHARR_MGCV_BI_REML
+model <- m_CHARR_BI_REML
 predictor <- "BIN50"
 
 viz_fun <- function(model, predictor) {
@@ -183,6 +184,20 @@ lower_ui <- (quantile(summary_mgcViz, probs = 0.025))[[1]]
 upper_ui <- (quantile(summary_mgcViz, probs = 0.975))[[1]]
 
 cbind(mgcViz_score, lower_ui, upper_ui)
+
+## Test for overdispersion and zero-inflation with "DHARMa"
+
+## simulate model-based randomized quantile residuals
+
+simulationOutput <- simulateResiduals(fitted = m_CHARR_BI_REML)
+
+## Check for overdispersion
+
+testDispersion(simulationOutput)
+
+## Check for zero-inflation
+
+testZeroInflation(simulationOutput)
 
 
 ## MODEL SELECTION ##############################################################
