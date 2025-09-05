@@ -61,7 +61,7 @@ ffun <- function(resp) {
 }
 
 
-## The hnp() syntax below can be used for all "mgcv" GAMs and GAMMs ##################################
+###################### The hnp() syntax below can be used for all "mgcv" GAMs and GAMMs #############################
 
 ## The hnp() function can now be used to assess the adequacy of an "mgcv" object
 ## by relying on the three previously defined helper functions. Here, a single "hnp" iteration
@@ -129,7 +129,7 @@ round(return_max(hnp_summary), 2)
 Summarize(hnp_summary)
 
 
-## GAUSSIAN DISTRIBUTION AND IDENTITY LINK ###################################################
+##################################### GAUSSIAN DISTRIBUTION AND IDENTITY LINK ##########################################
 
 ## Below, a fictive GAMM for which the deviance residuals are expected to
 ## approximate a normal distribution (and to be homoscedastic) is provided as an example.
@@ -232,7 +232,7 @@ round(return_max(hnp_summary), 2)
 Summarize(hnp_summary)
 
 
-## GAMMA DISTRIBUTION AND LOG LINK ###############################################
+################################ GAMMA DISTRIBUTION AND LOG LINK ##########################################
 
 ## Simulate a new continuous response variable using the Gamma distribution 
 ## Use the same X1, X2, and X3 as defined above, with Y requiring to be non-zero
@@ -309,7 +309,7 @@ round(return_max(hnp_summary), 2)
 Summarize(hnp_summary)
 
 
-## POISSON DISTRIBUTION AND LOG LINK ########################################################
+################################# POISSON DISTRIBUTION AND LOG LINK #########################################
 
 ## Simulate data from the type-II negative binomial (NB2) distribution to 
 ## illustrate that the Poisson distribution is inadequate to model such overdispersed
@@ -389,7 +389,7 @@ round(return_max(hnp_summary), 2)
 Summarize(hnp_summary)
 
 
-## TYPE-II NEGATIVE BINOMIAL (NB2) WITH LOG LINK ##################################
+################################# TYPE-II NEGATIVE BINOMIAL (NB2) WITH LOG LINK ##################################
 
 GAMM_NB2 <- gam(Y ~ s(X1) + X2 + s(X3, bs = "re"), 
                     family = nb, ## same as family = nb(theta = NULL, link = "log")
@@ -456,7 +456,7 @@ Summarize(hnp_summary)
 ## adequate based on the modal percentage of deviance residuals found outside the simulated envelope. 
 
 
-## BINOMIAL DISTRIBUTION AND LOGIT LINK (analysis of discrete proportions) ################################
+############################# BINOMIAL DISTRIBUTION AND LOGIT LINK (discrete proportions) ##############################
 
 ## Generate new data
 
