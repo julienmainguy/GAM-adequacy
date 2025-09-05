@@ -235,7 +235,7 @@ upper_ui <- (quantile(summary_mgcViz, probs = 0.975))[[1]]
 cbind(mgcViz_score, lower_ui, upper_ui)
 
 
-## MODEL SELECTION -------------------------------------------------------------
+## MODEL SELECTION ################################################################
 
 ## Using the compareML() function of "itsadug" shows that the final NB2 GAMM offers
 ## an equivalent fit to that of the initial full counterpart despite being much
@@ -250,7 +250,7 @@ compareML(m_WALLEYE_NB2_FINAL, m_WALLEYE_NB2_FULL)
 model.sel(m_WALLEYE_NB2_FINAL, m_WALLEYE_NB2_FULL, rank = BICc)
 
 
-## "IN-SAMPLE" PREDICTIVE PERFORMANCE ###########################################
+## "IN-SAMPLE" PREDICTIVE PERFORMANCE #############################################
 
 ## First, refit the final NB2 GAMM with REML instead of ML
 
@@ -276,7 +276,7 @@ D2_adj <- 100 - ((n - 1) / (n - K) * (100 - D2))
 cbind(D2, D2_adj)
 
 
-## MODEL PREDICTIONS ###########################################################
+## MODEL PREDICTIONS #############################################################
 
 ## Predictions with "mgcv" for the final NB2 GAMM refitted with REML (Fig. 2a)
 
