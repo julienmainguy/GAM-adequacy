@@ -12,17 +12,6 @@ library(performance)
 library(tidyverse)
 
 
-## Create a function for the calculation of the sample-adjusted BIC (BICc)
-
-BICc <- function (obj) {
-  bic <- BIC(obj)
-  n <- obj$df.null + 1
-  p <- n - obj$df.residual
-  bicc <- bic + (log(n) * (p + 1) * p)/(n - p - 1)
-  return(bicc)
-}
-
-
 ################################################################################
 ########## EXAMPLE 3: SPAWNING PROBABILITY OF ARCTIC CHARR FEMALES #############
 ################################################################################
@@ -75,12 +64,6 @@ summary(m_CHARR_BI_REML)
 b0 <- coef(m_CHARR_BI_REML)[[1]]
 b1 <- coef(m_CHARR_BI_REML)[[2]]
 ((-b0 - 0.3665129) / b1)
-
-
-## Estimate the L50 using the dose.p() function of "MASS" to also obtain the $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-## standard error (SE), which is calculated using the Delta method. $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-
-dose.p(m_CHARR_BI_REML) $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 
 ## MODEL ADEQUACY ####################################################################
