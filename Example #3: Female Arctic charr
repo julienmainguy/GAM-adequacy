@@ -197,37 +197,20 @@ testDispersion(simulationOutput)
 
 ## Check for zero-inflation
 
-testZeroInflation(simulationOutput)
+## Zero-inflation test
+
+testZI <- testZeroInflation(simulationOutput)
+testZI
+
+## Obtain the simulated-to-observed zero (i.e., ratioSimObs) ratio
+ratioObsSim <- testZI$statistic[[1]]
+(ratioSimObs <- 1 / ratioObsSim)
 
 
-## MODEL SELECTION ##############################################################
+## MODEL SELECTION #################################################################
 
-DHARMA and performance ?????????????????????????????????????????????????????????????????????????????????????????????????
+## No model selection step is required given that only one model is considered
 
-## The related half-normal plot suggests weak overdispersion. Because this simple
-## binomial GAM has been fitted in "mgcv", this also allows to test for likely
-## overdispersion with "DHARMa" which can also test for possible zero-inflation.
-## Overdispersion is specifically assessed (as opposed to equidispersion) by also
-## using the argument alternative = "greater" with the testDispersion() function.
-
-simulationOuput <- simulateResiduals(fittedModel=m_CHARR_MGCV_NRS_BI)
-
-testDispersion(simulationOuput, alternative = "greater")
-
-## Using the same simulated randomized quantile residuals that were produced above,
-## the testZeroInflation() function is used to assess a possible excess of observed
-## zeros relative to those being predicted, which appears unlikely given that the
-## zero-inflated binomial and zero-inflated beta-binomial were both discarded.
-
-testZeroInflation(simulationOuput)
-
-## With detected overdispersion, but no evidence for zero-inflation, the binomial
-## GAM is not sufficiently adequate to model these slightly overdispersed discrete
-## proportions, such that the adequate beta-binomial that handles the extra-binomial
-## variation is the logical choice.
-
-
-## MODEL SELECTION -------------------------------------------------------------
 
 ## "IN-SAMPLE" PREDICTIVE PERFORMANCE ##############################################
 
