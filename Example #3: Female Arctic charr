@@ -83,11 +83,7 @@ size <- CHARR$TOTAL
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
-sfun <- function(n, obj) {
-  p_hat <- predict(obj, type = "response")
-  y <- rbinom(n = n, size = size, prob = p_hat)
-  return(y)
-}
+sfun <- function(n, obj) round(simulate(obj)[,1] * size, 0)   
 
 ffun <- function(new_response) {
   gam(cbind(new_response, TOTAL - new_response) ~ BIN50 + s(RIVER, bs = "re"),
@@ -133,6 +129,7 @@ round(return_max(hnp_summary), 2)
 
 Summarize(hnp_summary)
 
+
 ## Calculate the mgcViz score (mean %) for a given model based on 
 ## 100 iterations. A 95% "uncertainty interval" (ui) is also calculated.
 ## This can take several seconds to run.
@@ -168,15 +165,18 @@ upper_ui <- (quantile(summary_mgcViz, probs = 0.975))[[1]]
 
 cbind(mgcViz_score, lower_ui, upper_ui)
 
+
 ## Test for overdispersion and zero-inflation with "DHARMa"
 
 ## simulate model-based randomized quantile residuals
 
 simulationOutput <- simulateResiduals(fitted = m_CHARR_BI_REML)
 
+
 ## Check for overdispersion
 
 testDispersion(simulationOutput)
+
 
 ## Check for zero-inflation
 
