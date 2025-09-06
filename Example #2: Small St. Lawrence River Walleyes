@@ -134,7 +134,7 @@ gam.check(m_WALLEYE_NB2_FINAL)
 ## Adequacy assessment based on half-normal plots with "hnp". 
 ## This can take many seconds to a few minutes to run
 
-model <- m_WALLEYE_NB2_FINAL
+model <- m_WALLEYE_NB2_FINAL ## performing this step for the "FULL" model takes many minutes
 family <- nb
 method <- "ML"
 data <- WALLEYE
