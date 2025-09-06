@@ -141,12 +141,7 @@ data <- WALLEYE
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
-sfun <- function(n, obj) {
-  y <- rnbinom(nrow(data),
-               size = model$family$getTheta(TRUE),
-               mu = predict(model, type = "response"))
-  return(y)
-}
+sfun <- function(n, obj) simulate(obj)[,1]
 
 ffun <- function(resp) {
       gam(resp ~ s(YEAR) + D1AUG + DEPTH + s(TURBID) + s(AREA, bs = "re"),
