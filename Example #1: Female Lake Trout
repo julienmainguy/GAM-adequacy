@@ -98,12 +98,7 @@ data <- TROUT
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
-sfun <- function(n, obj) {
-  y <- rnorm(nrow(data),
-             mean = predict(model, type = "response"),
-             sd = sqrt(model$sig2))
-  return(y)
-}
+sfun <- function(n, obj) simulate(obj)[,1]
 
 ffun <- function(resp) {
   gam(resp ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re"),
@@ -156,6 +151,7 @@ round(return_max(hnp_summary), 2)
 ## descriptive statistics using the Summarize() function of "FSA".
 
 Summarize(hnp_summary)
+
 
 ## Diagnostic half-normal plot of the deviance residuals using the hnp() 
 ## function of "hnp" and a newly-made available sfun() helper function for the
