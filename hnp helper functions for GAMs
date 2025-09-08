@@ -4,21 +4,19 @@ library(FSA)
 library(hnp)
 library(mgcv)
 
-################################################################################
-##################### "hnp" helper functions for "mgcv" ########################
-################################################################################
+###########################################################################################
+######################## "hnp" helper functions for "mgcv" ################################
+###########################################################################################
 
-## Up to now, "hnp" was unable to assess the adequacy of GAMs (and GAMMs) fitted 
-## in "mgcv". Helper functions are now available to allow such assessment, namely
-## the dfun(), sfun(), and ffun() functions, which are all described below.
-
-##                               ***IMPORTANT***
-##      - the dfun() function remains the same at all times
-##      - the sfun() function remains the same in all cases, except for the binomial
-##      - the ffun() function has to be adapted to how the model was parameterized
+## Helper functions are now available to allow the adequacy assessment of GAMs fitted in 
+## "mgcv". These are the dfun(), sfun(), and ffun() functions, which are all described below,
+## knowing that:
+##   - the dfun() function remains the same at all times
+##   - the sfun() function remains the same in all cases, except for the binomial distribution
+##   - the ffun() function has to be adapted each time to how the model was specified
 
 
-## dfun(): a helper function to extract the deviance (or other type of) residuals of a model.
+## dfun(): a helper function to extract the deviance (or other types of) residuals of a model.
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
