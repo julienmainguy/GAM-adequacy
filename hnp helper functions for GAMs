@@ -11,8 +11,11 @@ library(mgcv)
 ## Helper functions are now available to allow the adequacy assessment of GAMs fitted in 
 ## "mgcv". These are the dfun(), sfun(), and ffun() functions, which are all described below,
 ## knowing that:
+
 ##   - the dfun() function remains the same at all times
-##   - the sfun() function remains the same in all cases, except for the binomial distribution
+
+##   - the sfun() function remains the same, except for the binomial distribution (see below)
+
 ##   - the ffun() function has to be adapted each time to how the model was specified
 
 
@@ -30,12 +33,12 @@ dfun <- function(obj) resid(obj, type = "deviance")
 
 ## Gaussian, gamma with log link, Poisson, and NB2
 
-sfun <- function(n, obj) simulate(obj)[,1]
+sfun <- function(n, obj) simulate(obj)[, 1]
 
 
 ## binomial with discrete proportions
 
-sfun <- function(n, obj) round(simulate(obj)[,1] * size, 0)
+sfun <- function(n, obj) round(simulate(obj)[, 1] * size, 0)
 
 
 ## ffun(): a helper function to refit the model 99 times (default value). 
@@ -44,9 +47,9 @@ sfun <- function(n, obj) round(simulate(obj)[,1] * size, 0)
 ## First, define the fitted model, family, method, and data used (and other required information)
 
 model <-   ## model name
-family <-  ## family used, such as poisson or nb (i.e., NB2)
+family <-  ## family used, such as gaussian or poisson
 method <-  ## method used, such as "ML" or "REML"
-data <-    ## name of dataset
+data <-    ## name of the dataset
 
 
 ## Then, the right-hand side of the fitted model formula must be provided (i.e., next to *resp ~ *)
@@ -163,7 +166,7 @@ summary(GAMM_GAUSSIAN)
 ## Apply the dfun() and sfun() helper functions
 
 dfun <- function(obj) resid(obj, type = "deviance")
-sfun <- function(n, obj) simulate(obj)[,1]
+sfun <- function(n, obj) simulate(obj)[, 1]
 
 
 ## Define the information needed for ffun()
@@ -254,7 +257,7 @@ summary(GAMM_GAMMA)
 
 
 dfun <- function(obj) resid(obj, type = "deviance")
-sfun <- function(n, obj) simulate(obj)[,1]
+sfun <- function(n, obj) simulate(obj)[, 1]
 
 model <- GAMM_GAMMA
 family <- Gamma(link = "log")
@@ -309,9 +312,8 @@ Summarize(hnp_summary)
 
 ################################# POISSON DISTRIBUTION AND LOG LINK #########################################
 
-## Simulate data from the type-II negative binomial (NB2) distribution to 
-## illustrate that the Poisson distribution is inadequate to model such overdispersed
-## count data.
+## Simulate data from the type-II negative binomial (NB2) distribution to illustrate that 
+## the Poisson distribution is inadequate to model such overdispersed count data.
 
 set.seed(2025)
 
@@ -334,7 +336,7 @@ GAMM_POISSON <- gam(Y ~ s(X1) + X2 + s(X3, bs = "re"),
 summary(GAMM_POISSON)
 
 dfun <- function(obj) resid(obj, type = "deviance")
-sfun <- function(n, obj) simulate(obj)[,1]
+sfun <- function(n, obj) simulate(obj)[, 1]
 
 model <- GAMM_POISSON 
 family <- poisson
@@ -450,7 +452,7 @@ round(return_max(hnp_summary), 2)
 Summarize(hnp_summary)
 
 
-## The Poisson model was inadequate to model such overdispersed data. whereas the NB2 GAMM is sufficiently 
+## The Poisson model was inadequate to model such overdispersed data. whereas the NB2 GAMM is barely 
 ## adequate based on the modal percentage of deviance residuals found outside the simulated envelope. 
 
 
@@ -497,7 +499,9 @@ size <- DISCRETE_PROP$TOTAL
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
-sfun <- function(n, obj) round(simulate(obj)[,1] * size, 0)
+## Note below that the sfun() function has changed
+
+sfun <- function(n, obj) round(simulate(obj)[, 1] * size, 0)
 
 ffun <- function(new_response) {
   gam(cbind(new_response, TOTAL - new_response) ~ s(X1) + X2 + s(X3, bs = "re"),
