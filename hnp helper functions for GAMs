@@ -8,41 +8,46 @@ library(mgcv)
 ######################## "hnp" helper functions for "mgcv" ################################
 ###########################################################################################
 
-## Helper functions are now available to allow the adequacy assessment of GAMs fitted in 
-## "mgcv". These are the dfun(), sfun(), and ffun() functions, which are all described below,
-## knowing that:
+## The following helper functions allow the adequacy assessment of GAMs fitted in "mgcv". 
+## These are the dfun(), sfun(), and ffun() functions, which are all described below.
+## Please note that:
 
-##   - the dfun() function remains the same at all times
+##   - the dfun() function remains the same at all times (extracts the deviance residuals)
 
 ##   - the sfun() function remains the same, except for the binomial distribution (see below)
 
-##   - the ffun() function has to be adapted each time to how the model was specified
+##   - the ffun() function has to be adapted each time according to how the model was specified
 
 
-## dfun(): a helper function to extract the deviance (or other types of) residuals of a model.
+## dfun()
+
+## A helper function to extract the deviance (or other types of) residuals of a model
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
 
-## sfun(): a helper function to perform empirically-derived simulations to determine
-## how the residuals should behave under the distributional assumptions of the fitted GAM.
-## For the Gaussian (identity link), gamma (log link), Poisson (log link) and NB2 (log link),
-## the sfun() function is exactly the same. For the specific case of the binomial distribution
-## when analyzing discrete proportion data (i.e., not binary data), a different sfun() function
-## is required
+## sfun()
 
-## Gaussian, gamma with log link, Poisson, and NB2
+## A helper function to perform empirically-derived simulations to determine how the residuals
+## should behave under the distributional assumptions of the fitted GAM. For the Gaussian 
+## (identity link), gamma (log link), Poisson (log link) and NB2 (log link), the sfun() function
+## remains exactly the same. For the specific case of the binomial distribution when analyzing
+## discrete proportion data (i.e., NOT binary data), a different sfun() function is required
+
+## Gaussian, gamma with log link, Poisson, and type-II negative binomial (NB2)
 
 sfun <- function(n, obj) simulate(obj)[, 1]
 
 
-## binomial with discrete proportions
+## binomial
 
 sfun <- function(n, obj) round(simulate(obj)[, 1] * size, 0)
 
 
-## ffun(): a helper function to refit the model 99 times (default value). 
-## This function is also specific to the model being assessed
+## ffun()
+
+## A helper function to refit the model 99 times (default value). This function is also specific
+## to the model being assessed
 
 ## First, define the fitted model, family, method, and data used (and other required information)
 
@@ -62,50 +67,48 @@ ffun <- function(resp) {
 }
 
 
-###################### The hnp() syntax below can be used for all "mgcv" GAMs and GAMMs #############################
+############### The hnp() syntax below can be used for all "mgcv" GAMs and GAMMs #####################
 
-## The hnp() function can now be used to assess the adequacy of an "mgcv" object
-## by relying on the three previously defined helper functions. Here, a single "hnp" iteration
-## will be performed. The argument how.many.out = TRUE will indicate the percentage of residuals
-## found outside the simulated envelope of the half-normal plot. The corresponding
-## half-normal plot will be shown with the argument plot = TRUE. The argument
-## paint = TRUE will show the residuals found outside the envelope in red. The
-## code below is just provided as an example and thus, will not work if run.
+## The hnp() function can now be used to assess the adequacy of an "mgcv" object by relying on the
+## three previously defined helper functions. Here, a single "hnp" iteration will be performed. Using
+## the argument *how.many.out = TRUE* will allow to indicate the percentage of residuals found outside
+## the simulated envelope of the half-normal plot. The corresponding half-normal plot will be shown with
+## the argument *plot = TRUE*. The argument *paint = TRUE* will show in red the residuals that are found
+## outside the envelope
 
-hnp(model,                 ## same as the GAM or GAMM that was defined above
-    newclass = TRUE, 
-    diagfun = dfun, 
-    simfun = sfun, 
-    fitfun = ffun, 
-    how.many.out = TRUE, 
-    plot = TRUE, 
-    paint = TRUE)
+## hnp(model,
+##     newclass = TRUE, 
+##     diagfun = dfun, 
+##     simfun = sfun, 
+##     fitfun = ffun, 
+##     how.many.out = TRUE, 
+##     plot = TRUE, 
+##     paint = TRUE)
 
 
 ## The iterative process below can be used for all GAMs and GAMMs fitted in "mgcv".
 ## The specific dfun(), sfun(), and ffun() helper functions can be used to obtain 
-## a modal and a mean percentage of residuals found outside the simulated
-## envelope based on the number of iterations (n) specified by the user.
-## 10 "hnp" iterations are performed below. The set.seed() function is solely
-## used for result reproducibility. This code generates a list of results
-## saved as an object called "hnp_obj" below and is applicable to any model (stored 
-## as this alias) for which the dfun(), sfun(), and ffun() helper functions 
-## have been previously correctly defined.
+## a modal and a mean percentage of residuals found outside the simulated envelope
+## based on the number of iterations (n) specified by the user. A recommended 10 "hnp"
+## iterations are performed below. The set.seed() function is solely used for result
+## reproducibility. This code generates a list of results that are saved in an object
+## referred to as "hnp_obj" below and is applicable to any model (stored as this alias)
+## for which the three helper functions have been previously defined.
 
-set.seed(2025)
+## set.seed(2025)
 
-n <- 10
+## n <- 10
 
-hnp_obj <- list()
-for (i in 1:n) {
-  hnp_obj[[i]] <- hnp(model, 
-                      newclass = TRUE,
-                      diagfun = dfun,
-                      simfun = sfun,
-                      fitfun = ffun,
-                      how.many.out = TRUE,
-                      plot.sim = FALSE)
-}
+## hnp_obj <- list()
+##    for (i in 1:n) {
+##        hnp_obj[[i]] <- hnp(model, 
+##                            newclass = TRUE,
+##                            diagfun = dfun,
+##                            simfun = sfun,
+##                            fitfun = ffun,
+##                            how.many.out = TRUE,
+##                            plot.sim = FALSE)
+## }
 
 
 ## Calculate the percentage of residuals found outside the simulated envelope of 
