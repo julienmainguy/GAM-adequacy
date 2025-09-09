@@ -30,13 +30,14 @@ BICc <- function (obj) {
 url <- "https://raw.githubusercontent.com/julienmainguy/GAM-adequacy/refs/heads/main/TROUT"
 TROUT <- read.delim(url)
 
-## GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ##########################
+
+############## GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ################
 
 ## Fitting the Gaussian distribution, as done for the nonlinear mixed-effects von 
 ## Bertalanffy growth model, to a GAMM with the default parametrization for s(),
 ## such that it is identified with *_TP* from using thin-plate regression splines.
 ## Note that s(AGE, bs = "tp", k = 10) is equivalent to just using s(AGE), whereas
-## family = gaussian(link = "identity") is the same as using family = gaussian.
+## family = gaussian(link = "identity") is the same as using family = gaussian
 
 TROUT$LAKE <- as.factor(TROUT$LAKE)
 
@@ -47,10 +48,13 @@ m_TROUT_GAUSSIAN_TP <- gam(TL ~ s(AGE, bs = "tp", k = 10) + s(LAKE, bs = "re"),
 
 summary(m_TROUT_GAUSSIAN_TP)
 
-## Fitting an alternative Gaussian GAMM with an adaptive smooth *_AD* again using
+
+## Fitting an alternative Gaussian GAMM with an adaptive smooth *_AD*, again using
 ## the ML method in "mgcv". The default k = 10 is increased to 20 to further penalize
 ## against wiggliness. Using k = 20 is possible given that the TROUT dataset contains
 ## 37 distinct AGE values.
+
+n_distinct(TROUT$AGE)
 
 m_TROUT_GAUSSIAN_AD <- gam(TL ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re"),
                            family = gaussian(link = "identity"),
@@ -59,13 +63,13 @@ m_TROUT_GAUSSIAN_AD <- gam(TL ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re"),
 
 summary(m_TROUT_GAUSSIAN_AD)
 
-## Fitting the Gamma distribution with a log link (Forbes et al. 2010) instead as
-## just done above with the Gaussian distribution. Note that using family = Gamma
-## only will use an inverse link function as a default setting, such that explicitly
-## indicating family = Gamma(link = "log") is required for fitting a log link 
-## function instead, which is intended here. An adaptive smooth *_AD* is used again
-## here given the bioligically unrealistic wiggling at older ages that thin-plate
-## regression splines generate due to the sparsely distributed observations.
+## Fitting the Gamma distribution with a log link instead as just done above with 
+## the Gaussian distribution. Note that using *family = Gamma* will use an inverse
+## link function as a default setting, such that indicating *family = Gamma(link = "log")*
+## is required for fitting a log link function instead, which is intended here. An 
+## adaptive smooth *_AD* is used again given the bioligically unrealistic wiggling at older
+## ages that results from using thin-plate regression splines, likely due to the sparsely
+## distributed observations.
 
 m_TROUT_GAMMA_AD <- gam(TL ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re"),
                         family = Gamma(link = "log"),
@@ -75,7 +79,7 @@ m_TROUT_GAMMA_AD <- gam(TL ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re"),
 summary(m_TROUT_GAMMA_AD)
 
 
-## MODEL ADEQUACY ####################################################################
+################################# MODEL ADEQUACY ###################################
 
 ## Diagnostic plots with the gam.check() function of "mgcv" for the Gaussian
 ## GAMM with an adaptive smooth. Similar diagnostic plots are produced for the
@@ -85,11 +89,11 @@ summary(m_TROUT_GAMMA_AD)
 gam.check(m_TROUT_GAUSSIAN_AD)
 
 
-## Diagnostic half-normal plot of the deviance residuals using the hnp() 
-## function of "hnp" and a newly-made available sfun() helper function for the
-## Gaussian distribution. The right-hand part following "resp ~" of the ffun helper
-## function should match that of the Gaussian GAMM built in "mgcv" that is being
-## assessed for adequacy. This step can take several seconds to run.
+## Diagnostic half-normal plot with a simulated envelope of the deviance residuals
+## using the hnp() function of "hnp" and new helper functions. The right-hand part 
+## following "resp ~" of the ffun() function should match that of the Gaussian GAMM
+## built in "mgcv" that is being assessed for adequacy. This step can take several 
+## seconds to run.
 
 model <- m_TROUT_GAUSSIAN_AD 
 family <- gaussian(link = "identity")
@@ -98,7 +102,7 @@ data <- TROUT
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
-sfun <- function(n, obj) simulate(obj)[,1]
+sfun <- function(n, obj) simulate(obj)[, 1]
 
 ffun <- function(resp) {
   gam(resp ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re"),
@@ -117,9 +121,11 @@ hnp(model,
     paint = TRUE,
     ylab = "Deviance residuals")
 
-## Performing 10 "hnp" iterations to obtain a mode and a mean percentage of 
+
+## Performing 10 "hnp" iterations to obtain a modal and a mean percentage of 
 ## residuals outside the simulated envelope for the same Gaussian GAMM with an
-## adaptive smooth. A seed is only used for result reproducibility.
+## adaptive smooth. The seed used is only for result reproducibility. This step
+## can take several minutes to run
 
 set.seed(2025)
 
@@ -154,8 +160,8 @@ Summarize(hnp_summary)
 
 
 ## Diagnostic half-normal plot of the deviance residuals using the hnp() 
-## function of "hnp" and a newly-made available sfun() helper function for the
-## gamma distribution with a log link that uses an adaptive *_AD* spline.
+## function of "hnp" for the gamma distribution with a log link that uses
+## an adaptive *_AD* smooth
 
 model <- m_TROUT_GAMMA_AD
 family = Gamma(link = "log")
@@ -164,7 +170,7 @@ data = TROUT
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
-sfun <- function(n, obj) simulate(obj)[,1]
+sfun <- function(n, obj) simulate(obj)[, 1]
 
 ffun <- function(resp) gam(resp ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re"),
                            family = family,
@@ -181,11 +187,9 @@ hnp(model,
     paint = TRUE,
     ylab = "Deviance residuals")
 
-## Perform 10 consecutive "hnp" runs to obtain a mode and a mean percentage of 
-## the points outside the simulated envelope from the same gamma GAMM being 
-## assessed for adequacy. The set.seed() function is solely used for reproducibility.
-## The modal percentage is first calculated and then the mean with other descriptive
-## statistics. This step can take several minutes to run
+
+## Performing 10 "hnp" iterations. 
+## This step can take several minutes to run
 
 set.seed(2025)
 
@@ -202,8 +206,6 @@ for(i in 1:10) {
 
 hnp_summary <- sapply(hfun, function(x) x$out / x$total * 100) 
 
-## Modal percentage as estimated from a density curve
-
 return_max <- function(numvec) {
   dens <- density(numvec)
   return(dens$x[which.max(dens$y)][1])
@@ -211,15 +213,13 @@ return_max <- function(numvec) {
 
 round(return_max(hnp_summary), 2)
 
-## Descriptive statistics, including the mean
-
 Summarize(hnp_summary)
 
 
 ## Diagnostic plots using the getviz(), check1D(), and l_gridCheck1D() functions 
 ## of "mgcViz" with 100 model-derived simulations (nsim) for an "mgcv" object, here
-## for the gamma GAMM with an adaptive smooth. Only the model and predictor must
-## be defined for the code to work.
+## for the gamma GAMM with an adaptive smooth. Only the model and predictor of
+## interest need to be first defined
 
 model <- m_TROUT_GAMMA_AD
 predictor <- "AGE"
@@ -228,32 +228,36 @@ set.seed(2025)
 
 viz <- getViz(model, nsim = 100)
 plot <- check1D(viz, predictor) + l_gridCheck1D(n = 100)
+
 diag_plot <- plot$ggObj
-est <- diag_plot$layers[[1]]$data
-ll <- diag_plot$layers[[3]]$data$ll
-ul <- diag_plot$layers[[3]]$data$ul
-diag <- cbind(est, ll, ul)
-diagnostic <- mutate(diag,
-                     ll_diff = y - ll,
-                     ul_diff = ul - y,
-                     test = ll_diff * ul_diff)
-n <- length(diagnostic$test)
-i_n <- sum(diagnostic$test >= 0)
-mgcViz_perc <- i_n / n * 100
+  est <- diag_plot$layers[[1]]$data
+  ll <- diag_plot$layers[[3]]$data$ll
+  ul <- diag_plot$layers[[3]]$data$ul
+  diag <- cbind(est, ll, ul)
+  diagnostic <- mutate(diag,
+                       ll_diff = y - ll,
+                       ul_diff = ul - y,
+                       test = ll_diff * ul_diff)
+  n <- length(diagnostic$test)
+  i_n <- sum(diagnostic$test >= 0)
+  mgcViz_perc <- i_n / n * 100
+
 
 ## Visualize the mgcViz diagnostic plot
 
 diag_plot
+
 
 ## Obtain the percentage of the binned residual means found within the
 ## simulated default 80% confidence limits shown on the mgcViz diagnostic plot
 
 mgcViz_perc
 
+
 ## Calculate the mgcViz score (mean) for a given model based on 100 iterations,
-## each relying on 100 model-based simulations. An associated 95% "uncertainty 
-## interval" (ui) is also calculated. Here again for the gamma GAMM with an
-## adaptive smooth. This can take several seconds to run.
+## each relying on 100 model-based simulations. An associated *95% uncertainty 
+## interval* (ui) is also calculated. Here for the gamma GAMM with an adaptive smooth.
+## This can take several seconds to run
 
 model <- m_TROUT_GAMMA_AD
 predictor <- "AGE"
@@ -272,10 +276,10 @@ viz_fun <- function(model, predictor) {
                        ll_diff = y - ll,
                        ul_diff = ul - y,
                        test = ll_diff * ul_diff)
-  n <- length(diagnostic$test)
-  i_n <- sum(diagnostic$test >= 0)
-  mgcViz_perc <- i_n / n * 100
-  mgcViz_perc
+   n <- length(diagnostic$test)
+   i_n <- sum(diagnostic$test >= 0)
+   mgcViz_perc <- i_n / n * 100
+   mgcViz_perc
 }
 
 summary_mgcViz <- replicate(100, viz_fun(model, predictor))
@@ -287,11 +291,12 @@ upper_ui <- (quantile(summary_mgcViz, probs = 0.975))[[1]]
 cbind(mgcViz_score, lower_ui, upper_ui)
 
 
-## MODEL SELECTION #############################################################
+############################## MODEL SELECTION ###################################
 
-## Compare Maximum Likelihood scores while accounting for model complexity (Edf) 
+## Compare Maximum Likelihood (ML) scores while accounting for model complexity (Edf) 
 ## for the two candidates GAMMs using the compareML() function of "itsadug". The
-## GAMMs being compared must share the same random structure.
+## GAMMs being compared must share the same random structure. The order of the listed
+## models is inconsequetial
 
 compareML(m_TROUT_GAUSSIAN_AD, m_TROUT_GAMMA_AD)
 
