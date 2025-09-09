@@ -12,11 +12,11 @@ library(mgcv)
 ## These are the dfun(), sfun(), and ffun() functions, which are all described below.
 ## Please note that:
 
-##   - the dfun() function remains the same at all times (extracts the deviance residuals)
+##   the dfun() function remains the same at all times (extracts the deviance residuals)
 
-##   - the sfun() function remains the same, except for the binomial distribution (see below)
+##   the sfun() function remains the same, except for the binomial distribution (see below)
 
-##   - the ffun() function has to be adapted each time according to how the model was specified
+##   the ffun() function has to be adapted each time according to how the model was specified
 
 
 ## dfun()
@@ -51,20 +51,20 @@ sfun <- function(n, obj) round(simulate(obj)[, 1] * size, 0)
 
 ## First, define the fitted model, family, method, and data used (and other required information)
 
-model <-   ## model name
-family <-  ## family used, such as gaussian or poisson
-method <-  ## method used, such as "ML" or "REML"
-data <-    ## name of the dataset
+##  model <-   ## model name
+##  family <-  ## family used, such as gaussian or poisson
+##  method <-  ## method used, such as "ML" or "REML"
+##  data <-    ## name of the dataset
 
 
 ## Then, the right-hand side of the fitted model formula must be provided (i.e., next to *resp ~ *)
 
-ffun <- function(resp) {
-  gam(resp ~            ## indicate the right-hand side of the fitted model formula
-      family = family,
-      method = method,
-      data = data)
-}
+##  ffun <- function(resp) {
+##    gam(resp ~            ## indicate the right-hand side of the fitted model formula
+##        family = family,
+##        method = method,
+##        data = data)
+##  }
 
 
 ############### The hnp() syntax below can be used for all "mgcv" GAMs and GAMMs #####################
@@ -92,54 +92,54 @@ ffun <- function(resp) {
 ## based on the number of iterations (n) specified by the user. A recommended 10 "hnp"
 ## iterations are performed below. The set.seed() function is solely used for result
 ## reproducibility. This code generates a list of results that are saved in an object
-## referred to as "hnp_obj" below and is applicable to any model (stored as this alias)
-## for which the three helper functions have been previously defined.
+## referred to as *hnp_obj* below and is applicable to any model (stored as this alias)
+## for which the three helper functions have been previously defined
 
 ## set.seed(2025)
 
 ## n <- 10
 
-## hnp_obj <- list()
+##  hnp_obj <- list()
 ##    for (i in 1:n) {
-##        hnp_obj[[i]] <- hnp(model, 
-##                            newclass = TRUE,
-##                            diagfun = dfun,
-##                            simfun = sfun,
-##                            fitfun = ffun,
-##                            how.many.out = TRUE,
-##                            plot.sim = FALSE)
-## }
+##       hnp_obj[[i]] <- hnp(model, 
+##                           newclass = TRUE,
+##                           diagfun = dfun,
+##                           simfun = sfun,
+##                           fitfun = ffun,
+##                           how.many.out = TRUE,
+##                           plot.sim = FALSE)
+##  }
 
 
 ## Calculate the percentage of residuals found outside the simulated envelope of 
-## each "hnp" iteration and store it in an object referred to as hnp_summary
+## each "hnp" iteration and store it in an object referred to as *hnp_summary*
 
 hnp_summary <- sapply(hnp_obj, function(x) x$out / x$total * 100) 
 
 
-## Obtain the mode percentage (asymptotic value) from the associated density curve
+## Obtain the modal percentage (asymptotic value) from the associated density curve
 
-return_max <- function(numvec) {
-  dens <- density(numvec)
-  return(dens$x[which.max(dens$y)][1])
-}
+##  return_max <- function(numvec) {
+##        dens <- density(numvec)
+##        return(dens$x[which.max(dens$y)][1])
+##  }
 
-round(return_max(hnp_summary), 2)
+##  round(return_max(hnp_summary), 2)
 
 
 ## Descriptive statistics, including the mean percentage, using the Summarize() 
 ## function of the "FSA" package
 
-Summarize(hnp_summary)
+##  Summarize(hnp_summary)
 
 
-##################################### GAUSSIAN DISTRIBUTION AND IDENTITY LINK ##########################################
+######################## GAUSSIAN DISTRIBUTION AND IDENTITY LINK #############################
 
-## Below, a fictive GAMM for which the deviance residuals are expected to
-## approximate a normal distribution (and to be homoscedastic) is provided as an example.
+## Below, a fictive GAMM for which the deviance residuals are expected to approximate a normal
+## distribution and to also exhibit homoscedasticity is provided as an example
 
-## Simulate continuous data using the normal distribution
-## Also assign random effect to each observation (stochastic error)
+## First, simulate continuous data using the normal distribution and also assign a random effect 
+## to each observation (i.e., stochastic error)
 
 set.seed(2025)
 
@@ -166,9 +166,11 @@ GAMM_GAUSSIAN <- gam(Y ~ s(X1) + X2 + s(X3, bs = "re"),
 
 summary(GAMM_GAUSSIAN)
 
+
 ## Apply the dfun() and sfun() helper functions
 
 dfun <- function(obj) resid(obj, type = "deviance")
+
 sfun <- function(n, obj) simulate(obj)[, 1]
 
 
@@ -180,7 +182,7 @@ method <- "REML"
 data <- CONTINUOUS
 
 
-## Apply the model-specific ffun() function 
+## Create the model-specific ffun() function 
 
 ffun <- function(resp) {
   gam(resp ~ s(X1) + X2 + s(X3, bs = "re"),
@@ -227,11 +229,13 @@ return_max <- function(numvec) {
   return(dens$x[which.max(dens$y)][1])
 }
 
+
 ## Modal percentage of residuals outside the simulated envelope
 
 round(return_max(hnp_summary), 2)
 
-## Mean percentage of residuals outside the simulated envelope
+
+## Mean percentage of residuals outside the simulated envelope and other descriptive statistics
 
 Summarize(hnp_summary)
 
@@ -246,6 +250,9 @@ shape <- 5
 mu <- exp(1 + 1.6 * X1 - 0.8 * X2 + 2 * as.numeric(X3)) # log link
 Y <- rgamma(n = 300, shape = shape, rate = shape / mu)
 
+
+## The dataset *NON_ZERO_POSITIVE_CONTINUOUS* is created to be analyzed with the gamma distribution (log link)
+
 NON_ZERO_POSITIVE_CONTINUOUS <- data.frame(Y = Y,
                                            X1 = X1,
                                            X2 = X2,
@@ -259,13 +266,22 @@ GAMM_GAMMA <- gam(Y ~ s(X1) + X2 + s(X3, bs = "re"),
 summary(GAMM_GAMMA)
 
 
+## Apply the dfun() and sfun() functions
+
 dfun <- function(obj) resid(obj, type = "deviance")
+
 sfun <- function(n, obj) simulate(obj)[, 1]
+
+
+## Define the information needed for ffun()
 
 model <- GAMM_GAMMA
 family <- Gamma(link = "log")
 method <- "REML"  
 data <- NON_ZERO_POSITIVE_CONTINUOUS
+
+
+## Create the model-specific ffun() function
 
 ffun <- function(resp) {
   gam(resp ~ s(X1) + X2 + s(X3, bs = "re"),
@@ -274,13 +290,16 @@ ffun <- function(resp) {
       data = data)
 }
 
+
+## Produce a single "hnp" diagnostic plot
+
 hnp(model,
-    newclass = TRUE, 
-    diagfun = dfun, 
-    simfun = sfun, 
-    fitfun = ffun, 
-    how.many.out = TRUE, 
-    plot = TRUE, 
+    newclass = TRUE,
+    diagfun = dfun,
+    simfun = sfun,
+    fitfun = ffun,
+    how.many.out = TRUE,
+    plot = TRUE,
     paint = TRUE)
 
 
@@ -315,12 +334,10 @@ Summarize(hnp_summary)
 
 ################################# POISSON DISTRIBUTION AND LOG LINK #########################################
 
-## Simulate data from the type-II negative binomial (NB2) distribution to illustrate that 
-## the Poisson distribution is inadequate to model such overdispersed count data.
+## Simulate overdispersed counts (variance > mean) from the NB2 distribution to illustrate that the Poisson
+## distribution is inadequate to model such data, using again the same predictor X1, X2, and X3 as above
 
 set.seed(2025)
-
-## use the same predictor X1, X2, and X3 as above
 
 mu <- exp(1 + 2* X1 - 1.5 * X2 + 0.38 * as.numeric(X3))  # log link
 
@@ -339,6 +356,7 @@ GAMM_POISSON <- gam(Y ~ s(X1) + X2 + s(X3, bs = "re"),
 summary(GAMM_POISSON)
 
 dfun <- function(obj) resid(obj, type = "deviance")
+
 sfun <- function(n, obj) simulate(obj)[, 1]
 
 model <- GAMM_POISSON 
@@ -394,6 +412,9 @@ Summarize(hnp_summary)
 
 ################################# TYPE-II NEGATIVE BINOMIAL (NB2) WITH LOG LINK ##################################
 
+## Here the same dataset (COUNT) that was analyzed above with the Poisson distribution is now modeled with
+## a NB2 GAMM
+
 GAMM_NB2 <- gam(Y ~ s(X1) + X2 + s(X3, bs = "re"), 
                     family = nb, ## same as family = nb(theta = NULL, link = "log")
                     method = "REML",
@@ -401,8 +422,10 @@ GAMM_NB2 <- gam(Y ~ s(X1) + X2 + s(X3, bs = "re"),
 
 summary(GAMM_NB2)
 
+
 dfun <- function(obj) resid(obj, type = "deviance")
-sfun <- function(n, obj) simulate(obj)[,1]
+
+sfun <- function(n, obj) simulate(obj)[, 1]
 
 model <- GAMM_NB2 
 family <- nb
@@ -455,13 +478,13 @@ round(return_max(hnp_summary), 2)
 Summarize(hnp_summary)
 
 
-## The Poisson model was inadequate to model such overdispersed data. whereas the NB2 GAMM is barely 
-## adequate based on the modal percentage of deviance residuals found outside the simulated envelope. 
+## The Poisson model was inadequate to model such overdispersed data. whereas the NB2 GAMM is barely $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ 
+## adequate based on the modal percentage of deviance residuals found outside the simulated envelope. $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ 
 
 
 ############################# BINOMIAL DISTRIBUTION AND LOGIT LINK (discrete proportions) ##############################
 
-## Generate new data
+## Generate discrete proportions
 
 set.seed(2025)
 
@@ -470,9 +493,9 @@ X2 <- rnorm(n = 300)
 X3 <- factor(sample(1:7, size = 300, replace = TRUE))
 TOTAL <- sample(5:20, size = 300, replace = TRUE)
 
-eta <- 0.4 + X1^3 + 1.5 * X2 - 0.6 * as.numeric(X3) # systematic component using X1, X2, and X3 defined above 
-p <- 1 / (1 + exp(-eta))                            # probabilities
-p_star <- pmin(pmax(p, 1e-6), 1 - 1e-6)             # avoid probabilities of exactly 0 or 1
+eta <- 0.4 + X1^3 + 1.5 * X2 - 0.6 * as.numeric(X3)  ## systematic component using X1, X2, and X3 defined above 
+p <- 1 / (1 + exp(-eta))                             ## probabilities
+p_star <- pmin(pmax(p, 1e-6), 1 - 1e-6)              ## avoid probabilities of exactly 0 or 1
 
 YES <- rbinom(n = 300, size = TOTAL, prob = p_star)
 
@@ -490,21 +513,20 @@ GAMM_BINOMIAL_LOGIT <- gam(cbind(YES, TOTAL - YES) ~ s(X1) + X2 + s(X3, bs = "re
 summary(GAMM_BINOMIAL_LOGIT)
 
 
-## For discrete proportions, size (i.e., the denominator) must also be provided
-## within the simulation function. In this fictive dataset (DISCRETE_PROP), size
-## makes up the TOTAL variable.
-
-model <- GAMM_BINOMIAL_LOGIT
-family <- binomial
-method <- "REML"  
-data <- DISCRETE_PROP
-size <- DISCRETE_PROP$TOTAL
+## For discrete proportions, *size* (i.e., the denominator) must also be provided within the simulation function.
+## In this fictive dataset (DISCRETE_PROP), *size* makes up the TOTAL variable.
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
 ## Note below that the sfun() function has changed
 
 sfun <- function(n, obj) round(simulate(obj)[, 1] * size, 0)
+
+model <- GAMM_BINOMIAL_LOGIT
+family <- binomial
+method <- "REML"  
+data <- DISCRETE_PROP
+size <- DISCRETE_PROP$TOTAL
 
 ffun <- function(new_response) {
   gam(cbind(new_response, TOTAL - new_response) ~ s(X1) + X2 + s(X3, bs = "re"),
