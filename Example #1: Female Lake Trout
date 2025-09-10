@@ -1,3 +1,4 @@
+
 ## Required packages:
 
 library(FSA)
@@ -102,7 +103,12 @@ data <- TROUT
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
-sfun <- function(n, obj) simulate(obj)[, 1]
+sfun <- function(n, obj) {
+  y <- rnorm(nrow(data),
+             mean = predict(model, type = "response"),
+             sd = sqrt(model$sig2))
+   return(y)
+}
 
 ffun <- function(resp) {
   gam(resp ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re"),
