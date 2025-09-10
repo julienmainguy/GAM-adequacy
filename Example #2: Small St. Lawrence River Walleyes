@@ -60,6 +60,42 @@ check_overdispersion(m_WALLEYE_POISSON_FULL)
 check_zeroinflation(m_WALLEYE_POISSON_FULL)
 
 
+## The fully-parameterized Poisson GAMM is not modeling sufficiently equi-dispersed
+## counts and is probably underfitting zeros, such that it cannot be considered as being
+## adequate and is thus discarded. This can be easily confirmed by looking at a single
+## half-normal plot with a simulated envelope. This can take many seconds to run.
+
+model <- m_WALLEYE_POISSON_FULL
+family <- poisson
+method <- "ML"
+data <- WALLEYE
+
+dfun <- function(obj) resid(obj, type = "deviance")
+
+sfun <- function(n,obj) {
+  y <- rpois(nrow(data),
+             lambda = predict(model, type = "response"))
+  return(y)
+ }
+
+ffun <- function(resp) {
+      gam(resp ~ s(YEAR) + D1AUG + DEPTH + s(TURBID) + s(AREA, bs = "re"),
+          family = family,
+          method = method,
+          data = data)
+}
+
+hnp(model,
+    newclass = TRUE,
+    diagfun = dfun,
+    simfun = sfun,
+    fitfun = ffun,
+    how.many.out = TRUE,
+    plot.sim = TRUE,
+    paint = TRUE,
+    ylab = "Deviance residuals")
+
+
 ## Attempt to handle both overdispersion and zero-inflation with the type-II 
 ## negative binomial (NB2) extension instead in "mgcv".
 
@@ -124,7 +160,7 @@ check_overdispersion(m_WALLEYE_NB2_FINAL)
 check_zeroinflation(m_WALLEYE_NB2_FINAL)
 
 
-## MODEL ADEQUACY ##################################################################
+## FINAL NB2 GAMM ADEQUACY ##################################################################
 
 ## Diagnostic plots with the gam.check() function of "mgcv"
 
@@ -134,14 +170,19 @@ gam.check(m_WALLEYE_NB2_FINAL)
 ## Adequacy assessment based on half-normal plots with "hnp". 
 ## This can take many seconds to a few minutes to run
 
-model <- m_WALLEYE_NB2_FINAL ## performing this step for the "FULL" model takes many minutes
+model <- m_WALLEYE_NB2_FINAL ## this step can take many minutes for the "FULL" model
 family <- nb
 method <- "ML"
 data <- WALLEYE
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
-sfun <- function(n, obj) simulate(obj)[,1]
+sfun <- function(n,obj) {
+  y <- rnbinom(nrow(data),
+               size = model$family$getTheta(TRUE),
+               mu = predict(model, type = "response"))
+  return(y)
+}
 
 ffun <- function(resp) {
       gam(resp ~ s(YEAR) + D1AUG + DEPTH + s(TURBID) + s(AREA, bs = "re"),
@@ -187,7 +228,6 @@ return_max <- function(numvec) {
   dens <- density(numvec)
   return(dens$x[which.max(dens$y)][1])
 }
-
 round(return_max(hnp_summary), 2)
 
 Summarize(hnp_summary)
