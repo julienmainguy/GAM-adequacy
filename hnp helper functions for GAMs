@@ -1,53 +1,31 @@
-## Required packages:
 
-library(FSA)
-library(hnp)
-library(mgcv)
+###############################################################################################
+######################## "hnp" helper functions for "mgcv" ####################################
+###############################################################################################
 
-###########################################################################################
-######################## "hnp" helper functions for "mgcv" ################################
-###########################################################################################
+## The "hnp" package cannot currently be used to assess the adequacy of GAMs fitted in "mgcv".
+## Three helper functions, namely dfun(), sfun(), and ffun(), can jointly be employed to allow
+## to make this possible, therefore providing an additional adequacy assessment tool for "mgcv".
 
-## The following helper functions allow the adequacy assessment of GAMs fitted in "mgcv". 
-## These are the dfun(), sfun(), and ffun() functions, which are all described below.
-## Please note that:
+## The dfun() function extracts the deviance (or other types of) residuals of a given GAM. This
+## This first function remains the same at all times.
 
-##   the dfun() function remains the same at all times (extracts the deviance residuals)
+## The sfun() function perform simulations to determine how the residuals should behave under 
+## the distributional assumptions of the fitted GAM. Each distribution family has its own
+## sfun() function (see below).
 
-##   the sfun() function remains the same, except for the binomial distribution (see below)
-
-##   the ffun() function has to be adapted each time according to how the model was specified
-
-
-## dfun()
-
-## A helper function to extract the deviance (or other types of) residuals of a model
-
-dfun <- function(obj) resid(obj, type = "deviance")
+## The ffun() function refits the considered GAM 99 times (default value) to allow to produce a
+## single half-normal (diagnostic) plot with a simulated envelope when jointly used with the 
+## dfun() and sfun() functions within the original hnp() function of hnp(), as shown below. The
+## ffun() function is specific to the GAM being assessed.
 
 
-## sfun()
+## sfun() function for commonly-used distribution families
 
-## A helper function to perform empirically-derived simulations to determine how the residuals
-## should behave under the distributional assumptions of the fitted GAM. For the Gaussian 
-## (identity link), gamma (log link), Poisson (log link) and NB2 (log link), the sfun() function
-## remains exactly the same. For the specific case of the binomial distribution when analyzing
-## discrete proportion data (i.e., NOT binary data), a different sfun() function is required
-
-## Gaussian, gamma with log link, Poisson, and type-II negative binomial (NB2)
-
-sfun <- function(n, obj) simulate(obj)[, 1]
+## Gaussian distribution with identity link
 
 
-## binomial
 
-sfun <- function(n, obj) round(simulate(obj)[, 1] * size, 0)
-
-
-## ffun()
-
-## A helper function to refit the model 99 times (default value). This function is also specific
-## to the model being assessed
 
 ## First, define the fitted model, family, method, and data used (and other required information)
 
