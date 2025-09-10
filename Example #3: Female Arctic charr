@@ -83,7 +83,13 @@ size <- CHARR$TOTAL
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
-sfun <- function(n, obj) round(simulate(obj)[,1] * size, 0)   
+sfun <- function(n, obj) {
+  p_hat <- predict(obj, type = "response")
+  y <- rbinom(n = n,
+              size = size,
+              prob = p_hat)
+  return(y)
+}
 
 ffun <- function(new_response) {
   gam(cbind(new_response, TOTAL - new_response) ~ BIN50 + s(RIVER, bs = "re"),
@@ -188,11 +194,6 @@ testZI
 ## Obtain the simulated-to-observed zero (i.e., ratioSimObs) ratio
 ratioObsSim <- testZI$statistic[[1]]
 (ratioSimObs <- 1 / ratioObsSim)
-
-
-## MODEL SELECTION #################################################################
-
-## No model selection step is required given that only one model is considered
 
 
 ## "IN-SAMPLE" PREDICTIVE PERFORMANCE ##############################################
