@@ -9,6 +9,7 @@ library(mgcViz)
 library(MuMIn)
 library(performance)
 library(tidyverse)
+library(visreg)
 
 
 ## Create a function for the calculation of the sample-adjusted BIC (BICc)
@@ -50,8 +51,14 @@ m_TROUT_GAUSSIAN_TP <- gam(TL ~ s(AGE, bs = "tp", k = 10) + s(LAKE, bs = "re"),
 summary(m_TROUT_GAUSSIAN_TP)
 
 
-## Fitting an alternative Gaussian GAMM with an adaptive smooth *_AD*, again using
-## the ML method in "mgcv". The default k = 10 is increased to 20 to further penalize
+## Biologically-unrelialistic predictions obtained from this first model, as shown from
+## using "visreg", lead to its rejection since growth needs to be strictly monotonic.
+
+visreg(m_TROUT_GAUSSIAN_TP, scale = "response", "AGE")
+
+
+## Below an alternative Gaussian GAMM with an adaptive smooth *_AD* is fitted using
+## the ML method in "mgcv" and with the default k = 10 increased to 20 to further penalize
 ## against wiggliness. Using k = 20 is possible given that the TROUT dataset contains
 ## 37 distinct AGE values.
 
@@ -64,13 +71,17 @@ m_TROUT_GAUSSIAN_AD <- gam(TL ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re"),
 
 summary(m_TROUT_GAUSSIAN_AD)
 
-## Fitting the Gamma distribution with a log link instead as just done above with 
-## the Gaussian distribution. Note that using *family = Gamma* will use an inverse
-## link function as a default setting, such that indicating *family = Gamma(link = "log")*
-## is required for fitting a log link function instead, which is intended here. An 
-## adaptive smooth *_AD* is used again given the bioligically unrealistic wiggling at older
-## ages that results from using thin-plate regression splines, likely due to the sparsely
-## distributed observations.
+
+## The fit is improved and now monotonic, as shown from using "visreg"
+
+visreg(m_TROUT_GAUSSIAN_AD, scale = "response", "AGE")
+
+
+## Lastly, a Gamma distribution with a log link is used instead because the variation in
+## fish total length (TL) often increases with age, such the variance may be better 
+## modeled as a function of the mean (i.e., proportional). Note that using *family = Gamma*
+## will use an inverse link function as a default setting, such that indicating 
+## *family = Gamma(link = "log")* is required for fitting a log link function instead.
 
 m_TROUT_GAMMA_AD <- gam(TL ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re"),
                         family = Gamma(link = "log"),
@@ -80,12 +91,19 @@ m_TROUT_GAMMA_AD <- gam(TL ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re"),
 summary(m_TROUT_GAMMA_AD)
 
 
+## The fit is also monotonic, as shown from using "visreg"
+
+visreg(m_TROUT_GAMMA_AD, scale = "response", "AGE")
+
+
 ################################# MODEL ADEQUACY ###################################
 
-## Diagnostic plots with the gam.check() function of "mgcv" for the Gaussian
-## GAMM with an adaptive smooth. Similar diagnostic plots are produced for the
-## gamma GAMM, with homoscedasticity for instance only being applicable to the
-## Gaussian case (which is not apparently respected from a visual inspection).
+## Diagnostic plots with the gam.check() function of "mgcv" for the Gaussian GAMM
+## with an adaptive smooth. Note that the deviance residuals are expected to be
+## normally distributed and homoscedastic for this distribution family, but this is
+## not the case for the gamma distribution with a log link. For the latter, only
+## the QQ plot can be considered as being helpful for adequacy assessment purposes.
+## For the Gaussian GAMM, note the expected cone-shaped heteroscedasticity.
 
 gam.check(m_TROUT_GAUSSIAN_AD)
 
@@ -93,7 +111,7 @@ gam.check(m_TROUT_GAUSSIAN_AD)
 ## Diagnostic half-normal plot with a simulated envelope of the deviance residuals
 ## using the hnp() function of "hnp" and new helper functions. The right-hand part 
 ## following "resp ~" of the ffun() function should match that of the Gaussian GAMM
-## built in "mgcv" that is being assessed for adequacy. This step can take several 
+## built in "mgcv" that is being assessed for adequacy. This step can take many 
 ## seconds to run.
 
 model <- m_TROUT_GAUSSIAN_AD 
@@ -131,7 +149,9 @@ hnp(model,
 ## Performing 10 "hnp" iterations to obtain a modal and a mean percentage of 
 ## residuals outside the simulated envelope for the same Gaussian GAMM with an
 ## adaptive smooth. The seed used is only for result reproducibility. This step
-## can take several minutes to run.
+## can take several minutes to run. Note that given the result obtained in the
+## previous step for a single "hnp" iteration, the model is already unlikely to
+## be sufficiently adequate. This step should confirm this interpretation.
 
 set.seed(2025)
 
@@ -150,13 +170,13 @@ for (i in 1:n) {
 
 hnp_summary <- sapply(hnp_obj, function(x) x$out / x$total * 100) 
 
+
+## Modal percentage of residuals outside the simulated envelope
+
 return_max <- function(numvec) {
   dens <- density(numvec)
   return(dens$x[which.max(dens$y)][1])
 }
-
-## Modal percentage of residuals outside the simulated envelope
-
 round(return_max(hnp_summary), 2)
 
 ## Mean percentage of residuals outside the simulated envelope with other
