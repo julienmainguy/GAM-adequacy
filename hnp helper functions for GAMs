@@ -4,9 +4,9 @@
 ###############################################################################################
 
 ## NOTE
-
-## Only explanations about the use of the helper functions for "hnp" are provided such that the
-## code presented below do not constitute examples of their application - only the approach.
+## Only explanations about the use of the helper functions for "hnp" are provided below, such
+## that the application of these helper functions with "hnp" are only provided in the examples
+## that are described in the main text (i.e., TROUT, WALLEYE, and CHARR data).
 
 ## The "hnp" package cannot currently be used to assess the adequacy of GAMs fitted in "mgcv".
 ## Three helper functions, namely dfun(), sfun(), and ffun(), can jointly be employed to allow
@@ -97,7 +97,7 @@ dfun <- function(obj) resid(obj, type = "deviance")
 ## Apply the sfun() function that is specific to the (distribution) family used (see above)
 
 sfun <- function(n, obj) {
-   #######################
+   ####################### ## SPECIFIC TO THE DISTRIBUTION FAMILY BEING CONSIDERED
    return(y)
 }
 
