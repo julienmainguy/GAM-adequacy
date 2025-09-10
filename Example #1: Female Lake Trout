@@ -38,7 +38,7 @@ TROUT <- read.delim(url)
 ## Bertalanffy growth model, to a GAMM with the default parametrization for s(),
 ## such that it is identified with *_TP* from using thin-plate regression splines.
 ## Note that s(AGE, bs = "tp", k = 10) is equivalent to just using s(AGE), whereas
-## family = gaussian(link = "identity") is the same as using family = gaussian
+## family = gaussian(link = "identity") is the same as using family = gaussian.
 
 TROUT$LAKE <- as.factor(TROUT$LAKE)
 
@@ -131,7 +131,7 @@ hnp(model,
 ## Performing 10 "hnp" iterations to obtain a modal and a mean percentage of 
 ## residuals outside the simulated envelope for the same Gaussian GAMM with an
 ## adaptive smooth. The seed used is only for result reproducibility. This step
-## can take several minutes to run
+## can take several minutes to run.
 
 set.seed(2025)
 
@@ -167,7 +167,7 @@ Summarize(hnp_summary)
 
 ## Diagnostic half-normal plot of the deviance residuals using the hnp() 
 ## function of "hnp" for the gamma distribution with a log link that uses
-## an adaptive *_AD* smooth
+## an adaptive *_AD* smooth.
 
 model <- m_TROUT_GAMMA_AD
 family = Gamma(link = "log")
@@ -176,7 +176,14 @@ data = TROUT
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
-sfun <- function(n, obj) simulate(obj)[, 1]
+sfun <- function(n, obj) {
+  mu_hat <- fitted(obj)
+  phi <- summary(obj)$dispersion
+  shape <- 1 / phi
+  scale <- mu_hat * phi
+  y <- rgamma(n = length(mu_hat), shape = shape, scale = scale)
+  return(y)
+}
 
 ffun <- function(resp) gam(resp ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re"),
                            family = family,
@@ -225,7 +232,7 @@ Summarize(hnp_summary)
 ## Diagnostic plots using the getviz(), check1D(), and l_gridCheck1D() functions 
 ## of "mgcViz" with 100 model-derived simulations (nsim) for an "mgcv" object, here
 ## for the gamma GAMM with an adaptive smooth. Only the model and predictor of
-## interest need to be first defined
+## interest need to be first defined.
 
 model <- m_TROUT_GAMMA_AD
 predictor <- "AGE"
@@ -263,7 +270,7 @@ mgcViz_perc
 ## Calculate the mgcViz score (mean) for a given model based on 100 iterations,
 ## each relying on 100 model-based simulations. An associated *95% uncertainty 
 ## interval* (ui) is also calculated. Here for the gamma GAMM with an adaptive smooth.
-## This can take several seconds to run
+## This can take several seconds to run.
 
 model <- m_TROUT_GAMMA_AD
 predictor <- "AGE"
@@ -302,7 +309,7 @@ cbind(mgcViz_score, lower_ui, upper_ui)
 ## Compare Maximum Likelihood (ML) scores while accounting for model complexity (Edf) 
 ## for the two candidates GAMMs using the compareML() function of "itsadug". The
 ## GAMMs being compared must share the same random structure. The order of the listed
-## models is inconsequetial
+## models is inconsequetial.
 
 compareML(m_TROUT_GAUSSIAN_AD, m_TROUT_GAMMA_AD)
 
