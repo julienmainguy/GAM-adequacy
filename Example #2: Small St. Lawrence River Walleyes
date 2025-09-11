@@ -308,7 +308,7 @@ logLik <- logLik(model)
 K <- attributes(logLik)$df
 n <- summary(model)$n
 D2_adj <- 100 - ((n - 1) / (n - K) * (100 - D2))
-cbind(D2, D2_adj)
+round(cbind(D2, D2_adj), 1)
 
 
 ## MODEL PREDICTIONS #############################################################
