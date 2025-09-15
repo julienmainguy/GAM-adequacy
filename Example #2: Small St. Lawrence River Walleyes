@@ -33,10 +33,10 @@ file_name <-
 WALLEYE <- read.delim(file_name)
 
 
-## GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ###########################
+################### GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ######################
 
-## Poisson GAMM with the default settings of the smooth function, s(), for all
-## predictors, i.e., thin plate regression splines (bs = "tp") and k = 10, with
+## Poisson GAMM with the default settings for the smooth function, s(), for all
+## predictors, i.e., the use of thin-plate regression splines (bs = "tp") and k = 10, with
 ## Maximum Likelihood (ML) estimation and AREA fitted as a random effect in "mgcv".
 
 WALLEYE$AREA <- as.factor(WALLEYE$AREA)
@@ -63,7 +63,9 @@ check_zeroinflation(m_WALLEYE_POISSON_FULL)
 ## The fully-parameterized Poisson GAMM is not modeling sufficiently equi-dispersed
 ## counts and is probably underfitting zeros, such that it cannot be considered as being
 ## adequate and is thus discarded. This can be easily confirmed by looking at a single
-## half-normal plot with a simulated envelope. This can take many seconds to run.
+## half-normal plot with a simulated envelope. This can take many seconds to run. Using
+## 10 iterations instead (not shown) just simply confirm the complete inadequacy of this
+## Poisson GAMM, but a sole diaganotic plot suffices in such case, as done below.
 
 model <- m_WALLEYE_POISSON_FULL
 family <- poisson
@@ -96,8 +98,8 @@ hnp(model,
     ylab = "Deviance residuals")
 
 
-## Attempt to handle both overdispersion and zero-inflation with the type-II 
-## negative binomial (NB2) extension instead in "mgcv".
+## The type-II negative binomial (NB2) extension is used instead in an attempt to handle
+## both the confirmed overdispersion and the plausible zero-inflation.
 
 m_WALLEYE_NB2_FULL <- gam(N ~ s(YEAR) + s(CONDUCT) + s(D1AUG) + s(DEPTH) +
                           s(EFFORT) + s(TEMP) + s(TURBID) + s(AREA, bs = "re"),
@@ -109,7 +111,7 @@ summary(m_WALLEYE_NB2_FULL)
 
 
 ## To first determine whether this NB2 GAMM fitted in "mgcv" could be reduced by
-## removing some predictors that may explain little to no variation in the response
+## excluding some predictors that may explain little to no variation in the response
 ## variable, a variable-selection approach which more heavily penalizes each smooth
 ## term with the argument select = TRUE will be used.
 
@@ -124,9 +126,9 @@ summary(m_WALLEYE_NB2_SELECT)
 
 
 ## The predictors s(CONDUCT), s(EFFORT), and s(TEMP) have their respective
-## effective degrees of freedom (edf) shrunk toward zero (0), indicating that
+## effective degrees of freedom (edf) shrinking toward zero, indicating that
 ## these three covariates fitted as smooth terms can be discarded. The NB2 GAMM
-## is refitted without these predictors and referred to as m_WALLEYE_REDUCED_NB2.
+## is refitted without these predictors and referred to as m_WALLEYE_NB2_REDUCED.
 
 m_WALLEYE_NB2_REDUCED <- gam(N ~ s(YEAR) + s(D1AUG) + s(DEPTH) + s(TURBID) +
                                   s(AREA, bs = "re"),
@@ -160,9 +162,11 @@ check_overdispersion(m_WALLEYE_NB2_FINAL)
 check_zeroinflation(m_WALLEYE_NB2_FINAL)
 
 
-## FINAL NB2 GAMM ADEQUACY ##################################################################
+############################### FINAL NB2 GAMM ADEQUACY ###################################
 
-## Diagnostic plots with the gam.check() function of "mgcv"
+## Diagnostic plots with the gam.check() function of "mgcv". Note how the residual pattern
+## in the top-right plot (Resids vs. linear pred.) are nearly uninterpretable due to the 
+## discreteness of the data being modeled.
 
 gam.check(m_WALLEYE_NB2_FINAL)
 
@@ -170,7 +174,7 @@ gam.check(m_WALLEYE_NB2_FINAL)
 ## Adequacy assessment based on half-normal plots with "hnp". 
 ## This can take many seconds to a few minutes to run
 
-model <- m_WALLEYE_NB2_FINAL ## this step can take many minutes, and even more so for the "FULL" model
+model <- m_WALLEYE_NB2_FINAL     ## this step can take many minutes
 family <- nb
 method <- "ML"
 data <- WALLEYE
@@ -210,7 +214,9 @@ hnp(model,
 ## envelope. This can take many minutes to run given the GAMM's level of complexity.
 
 set.seed(2025)
+
 n <- 10
+
 hnp_obj <- list()
 for(i in 1:n) {
   hnp_obj[[i]] <- hnp(model,
@@ -233,10 +239,9 @@ round(return_max(hnp_summary), 2)
 Summarize(hnp_summary)
 
 
-## Calculate the mgcViz score (mode and mean) based on 100 iterations, each relying
-## on 100 model-based simulations, for a given model and its main explanatory variable.
-## A 95% "uncertainty interval" (ui) is also calculated. This can take several 
-## seconds to run.
+## Calculate the mgcViz score (mean) based on 100 iterations, each relying on 100 
+## model-based simulations, for m_WALLEYE_NB2_FINAL and the predictor of interest (i.e., YEAR).
+## A 95% "uncertainty interval" (ui) is also calculated. This can take several seconds to run.
 
 set.seed(2025)
 
@@ -270,22 +275,23 @@ upper_ui <- (quantile(summary_mgcViz, probs = 0.975))[[1]]
 cbind(mgcViz_score, lower_ui, upper_ui)
 
 
-## MODEL SELECTION ################################################################
+######################################## MODEL SELECTION ####################################
 
-## Using the compareML() function of "itsadug" shows that the final NB2 GAMM offers
-## an equivalent fit to that of the initial full counterpart despite being much
+## Using the compareML() function of "itsadug" indicates that the final NB2 GAMM offers
+## an equivalent fit to that of the initial fully-parameterized counterpart despite being much
 ## less complex, as captured by the Estimated degrees of freedom (Edf).
 
 compareML(m_WALLEYE_NB2_FINAL, m_WALLEYE_NB2_FULL)
 
-## Comparing these same two models under an information-theoretic approach
-## indicates that the final NB2 GAMM is much more parsimonious than its full
-## counterpart using the model.sel() function of "MuMIn" according to BICc
+
+## Comparing these same two models under an information-theoretic approach indicates that the
+## final NB2 GAMM is much more parsimonious than its fully-parameterized counterpart using the
+## model.sel() function of "MuMIn" according to BICc
 
 model.sel(m_WALLEYE_NB2_FINAL, m_WALLEYE_NB2_FULL, rank = BICc)
 
 
-## "IN-SAMPLE" PREDICTIVE PERFORMANCE #############################################
+############################ "IN-SAMPLE" PREDICTIVE PERFORMANCE #############################
 
 ## First, refit the final NB2 GAMM with REML instead of ML
 
@@ -311,7 +317,7 @@ D2_adj <- 100 - ((n - 1) / (n - K) * (100 - D2))
 round(cbind(D2, D2_adj), 1)
 
 
-## MODEL PREDICTIONS #############################################################
+#################################### MODEL PREDICTIONS #######################################
 
 ## Predictions with "mgcv" for the final NB2 GAMM refitted with REML (Fig. 2a)
 
@@ -334,69 +340,4 @@ lower_ci <- exp(fitted$fit - 1.96 * fitted$se.fit)
 upper_ci <- exp(fitted$fit + 1.96 * fitted$se.fit)
 
 cbind(YEAR = nd_WALLEYE$YEAR, estimate, lower_ci, upper_ci)
-
-
-## TEMPORAL AUTOCORRELATION ######################################################
-
-## Check for temporal autocorrelation in the final NB2 GAMM with REML ("mgcv")
-## according to the test of Durbin and Watson (1950) implemented in "performance"
-## which can detect such analytical issues.
-
-check_autocorrelation(m_WALLEYE_NB2_FINAL_REML)
-
-
-## Estimate the first-order autoregressive (AR1) coefficient, referred to as rho,
-## with "itsadug" by refitting the final NB2 GAMM with the bam() function instead
-## of gam() in "mgcv" using fast REML (fREML) estimation instead of REML. The 
-## argument discrete = TRUE is also used (see van Rij et al. 2022).
-
-m_WALLEYE_NB2_FINAL_fREML <- bam(N ~ s(YEAR) + D1AUG + DEPTH + s(TURBID)
-                                 + s(AREA, bs = "re"),
-                                 family = nb, 
-                                 method = "fREML", 
-                                 discrete = TRUE, 
-                                 data = WALLEYE)
-
-summary(m_WALLEYE_NB2_FINAL_fREML)
-
-(RHO <- start_value_rho(m_WALLEYE_NB2_FINAL_fREML, plot = TRUE))
-
-
-## As RHO = 0.111, this indicates that approximately 11% of the variation
-## in the response variable (N) in a given year is explained by that observed in
-## the previous year. The same NB2 GAMM is refitted to now account for RHO and so
-## AR1 is added to its name to identify it.
-
-m_WALLEYE_NB2_FINAL_fREML_AR1 <- bam(N ~ s(YEAR) + D1AUG + DEPTH + s(TURBID)
-                                     + s(AREA, bs = "re"),
-                                     family = nb,
-                                     method = "fREML",
-                                     discrete = TRUE,
-                                     rho = RHO,
-                                     data = WALLEYE)
-
-summary(m_WALLEYE_NB2_FINAL_fREML_AR1)
-
-
-## Visually inspect whether the addition of an autocorrelation matrix with RHO
-## has reduced the temporal autocorrelation by looking at the ACF plot with "itsadug"
-
-check_resid(m_WALLEYE_NB2_FINAL_fREML_AR1, select = 3)
-
-
-## Use the compareML() function of "itsadug" to compare both models (with and 
-## without RHO)
-
-compareML(m_WALLEYE_NB2_FINAL_fREML, m_WALLEYE_NB2_FINAL_fREML_AR1)
-
-
-## Compare both models under an information-theoretic approach based on AICc
-
-model.sel(m_WALLEYE_NB2_FINAL_fREML, m_WALLEYE_NB2_FINAL_fREML_AR1)
-
-
-## Accounting for the AR1 term (using RHO) has statistically improved the model 
-## fit, but when its predictions are plotted against those of the NB2 GAMM with 
-## REML (i.e., not accounting for temporal autocorrelation), the differences 
-## between the two regression curves are quite slight.
 
