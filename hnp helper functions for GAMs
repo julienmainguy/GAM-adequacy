@@ -92,15 +92,15 @@ sfun <- function(n, obj) {
 
 ## Apply the dfun() function:
 
-dfun <- function(obj) resid(obj, type = "deviance")
+## dfun <- function(obj) resid(obj, type = "deviance")
 
 
 ## Apply the sfun() function that is specific to the (distribution) family used (see above)
 
-sfun <- function(n, obj) {
-   ####################### ## SPECIFIC TO THE DISTRIBUTION FAMILY BEING CONSIDERED
-   return(y)
-}
+## sfun <- function(n, obj) {
+##    ####################### ## SPECIFIC TO THE DISTRIBUTION FAMILY BEING CONSIDERED
+##    return(y)
+## }
 
 
 ## Then, the right-hand side of the fitted model formula must be provided (i.e., next to *resp ~ *)
@@ -143,26 +143,26 @@ sfun <- function(n, obj) {
 ## first generate a list of results that are saved in an object referred to as *hnp_obj*.
 ## The set.seed() function is solely used for result reproducibility.
 
-set.seed(2025)
+## set.seed(2025)
 
-n <- 10
+## n <- 10
 
-hnp_obj <- list()
-   for (i in 1:n) {
-      hnp_obj[[i]] <- hnp(model, 
-                          newclass = TRUE,
-                          diagfun = dfun,
-                          simfun = sfun,
-                          fitfun = ffun,
-                          how.many.out = TRUE,
-                          plot.sim = FALSE)
-}
+## hnp_obj <- list()
+##    for (i in 1:n) {
+##       hnp_obj[[i]] <- hnp(model, 
+##                           newclass = TRUE,
+##                           diagfun = dfun,
+##                           simfun = sfun,
+##                           fitfun = ffun,
+##                           how.many.out = TRUE,
+##                           plot.sim = FALSE)
+## }
 
 
 ## The percentage of residuals found outside the simulated envelope is calculated for each 
 ## "hnp" iteration (here n = 10) and then stored in an object referred to as *hnp_summary*:
 
-hnp_summary <- sapply(hnp_obj, function(x) x$out / x$total * 100) 
+## hnp_summary <- sapply(hnp_obj, function(x) x$out / x$total * 100) 
 
 
 ## The modal percentage (asymptotic value) from the associated density curve is first obtained:
