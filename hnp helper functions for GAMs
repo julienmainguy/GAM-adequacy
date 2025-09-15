@@ -5,15 +5,16 @@
 
 ## NOTE
 ## Only explanations about the use of the helper functions for "hnp" are provided below, such
-## that the application of these helper functions with "hnp" are only provided in the examples
-## that are described in the main text (i.e., TROUT, WALLEYE, and CHARR data).
+## that the application of these helper functions with "hnp" can be done with the examples that
+## are described in the main text (i.e., TROUT, WALLEYE, and CHARR data) with the code made
+## available here in the same repository (i.e., GAM-adequacy).
 
 ## The "hnp" package cannot currently be used to assess the adequacy of GAMs fitted in "mgcv".
 ## Three helper functions, namely dfun(), sfun(), and ffun(), can jointly be employed to allow
 ## to make this possible, therefore providing an additional adequacy assessment tool for "mgcv".
 
-## The dfun() function extracts the deviance (or other types of) residuals of a given GAM. This
-## This first function remains the same at all times. This function is coded as follows:
+## The dfun() function extracts the deviance (or other types of) residuals of a given GAM.
+## This first function remains the same at all times and is coded as follows:
 
 dfun <- function(obj) resid(obj, type = "deviance")
 
@@ -32,7 +33,7 @@ sfun <- function(n, obj) {
 }
 
 
-## Gamma distribution with a log link [nonzero positive continuous data]
+## Gamma distribution with a log link [nonzero-positive continuous data]
 
 sfun <- function(n, obj) {
   mu_hat <- fitted(obj)
