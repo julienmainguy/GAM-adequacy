@@ -24,14 +24,11 @@ file_name <-
 CHARR <- read.delim(file_name)
 
 
-## GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ###########################
-
-## Here the GAMMs will be identified with *_MGCV_* or *_GAMLSS_* given that both
-## packages will be used in this last example.
+################### GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ###################
 
 ## A binomial (BI) GAMM is fitted in "mgcv" with a complementary log-log (cloglog)
 ## link, which was previously used to model these data as Bernoulli trials (0/1)
-## by Mainguy et al. (under review). A smooth function is applied to BIN50 to check
+## by Mainguy et al. (2025b). A smooth function is applied to BIN50 to check
 ## if additional non-linearities are present in the binomial regression curve
 ## from modeling the same data as discrete proportions instead.
 
@@ -66,9 +63,11 @@ b1 <- coef(m_CHARR_BI_REML)[[2]]
 ((-b0 - 0.3665129) / b1)
 
 
-## MODEL ADEQUACY ####################################################################
+################################# MODEL ADEQUACY ######################################
 
-## Diagnostic plots using the gam.check() function of "mgcv".
+## Diagnostic plots using the gam.check() function of "mgcv". Note that in the top-right
+## plot the discreteness of the proportions creates a "diagonal line" in the distribution
+## pattern of the residuals which is not necesserily indicative of inadequacy.
 
 gam.check(m_CHARR_BI_REML)
 
@@ -130,14 +129,13 @@ return_max <- function(numvec) {
   dens <- density(numvec)
   return(dens$x[which.max(dens$y)][1])
 }
-
 round(return_max(hnp_summary), 2)
 
 Summarize(hnp_summary)
 
 
-## Calculate the mgcViz score (mean %) for a given model based on 
-## 100 iterations. A 95% "uncertainty interval" (ui) is also calculated.
+## Calculate the mgcViz score (mean %) for m_CHARR_BI_REML according to BIN50 
+## based on 100 iterations. A 95% "uncertainty interval" (ui) is also calculated.
 ## This can take several seconds to run.
 
 set.seed(2025)
@@ -172,11 +170,11 @@ upper_ui <- (quantile(summary_mgcViz, probs = 0.975))[[1]]
 cbind(mgcViz_score, lower_ui, upper_ui)
 
 
-## Test for overdispersion and zero-inflation with "DHARMa"
+## Test for overdispersion and zero-inflation with "DHARMa" instead of "performance"
 
 ## simulate model-based randomized quantile residuals
 
-simulationOutput <- simulateResiduals(fitted = m_CHARR_BI_REML)
+simulationOutput <- simulateResiduals(fittedModel = m_CHARR_BI_REML)
 
 
 ## Check for overdispersion
@@ -184,7 +182,7 @@ simulationOutput <- simulateResiduals(fitted = m_CHARR_BI_REML)
 testDispersion(simulationOutput)
 
 
-## Check for zero-inflation
+## Check for zero-inflation (using the same simulationOutput as above)
 
 ## Zero-inflation test
 
@@ -192,11 +190,12 @@ testZI <- testZeroInflation(simulationOutput)
 testZI
 
 ## Obtain the simulated-to-observed zero (i.e., ratioSimObs) ratio
+
 ratioObsSim <- testZI$statistic[[1]]
 (ratioSimObs <- 1 / ratioObsSim)
 
 
-## "IN-SAMPLE" PREDICTIVE PERFORMANCE ##############################################
+############################# "IN-SAMPLE" PREDICTIVE PERFORMANCE #######################
 
 ## Estimate the deviance explained (D2) and its adjusted version (D2_adj) for
 ## the BI GAMM in "mgcv" that relies on REML estimation.
@@ -211,7 +210,7 @@ D2_adj <- 100 - ((n - 1) / (n - K) * (100 - D2))
 round(cbind(D2, D2_adj), 1)
 
 
-## MODEL PREDICTIONS ###############################################################
+################################ MODEL PREDICTIONS #######################################
 
 nd_CHARR <- data.frame(BIN50 = seq(175, 675, by = 1), RIVER = "NA")
 
