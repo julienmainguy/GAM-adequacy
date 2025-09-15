@@ -1,4 +1,3 @@
-
 ## Required packages:
 
 library(FSA)
@@ -51,13 +50,13 @@ m_TROUT_GAUSSIAN_TP <- gam(TL ~ s(AGE, bs = "tp", k = 10) + s(LAKE, bs = "re"),
 summary(m_TROUT_GAUSSIAN_TP)
 
 
-## Biologically-unrelialistic predictions obtained from this first model, as shown from
-## using "visreg", lead to its rejection since growth needs to be strictly monotonic.
+## Biologically-unrelialistic predictions are obtained from this first model, as shown from
+## using "visreg", leading to its rejection since growth needs to be strictly monotonic.
 
 visreg(m_TROUT_GAUSSIAN_TP, scale = "response", "AGE")
 
 
-## Below an alternative Gaussian GAMM with an adaptive smooth *_AD* is fitted using
+## Below, an alternative Gaussian GAMM with an adaptive smooth *_AD* is fitted instead using
 ## the ML method in "mgcv" and with the default k = 10 increased to 20 to further penalize
 ## against wiggliness. Using k = 20 is possible given that the TROUT dataset contains
 ## 37 distinct AGE values.
@@ -101,9 +100,9 @@ visreg(m_TROUT_GAMMA_AD, scale = "response", "AGE")
 ## Diagnostic plots with the gam.check() function of "mgcv" for the Gaussian GAMM
 ## with an adaptive smooth. Note that the deviance residuals are expected to be
 ## normally distributed and homoscedastic for this distribution family, but this is
-## not the case for the gamma distribution with a log link. For the latter, only
-## the QQ plot can be considered as being helpful for adequacy assessment purposes.
-## For the Gaussian GAMM, note the expected cone-shaped heteroscedasticity.
+## not the case for the gamma distribution with a log link. For the latter, the QQ plot
+## is considered helpful for adequacy assessment purposes. For the Gaussian GAMM, note
+## in the top-right plot (Resids vs. linear pred.) the cone-shaped heteroscedasticity.
 
 gam.check(m_TROUT_GAUSSIAN_AD)
 
@@ -146,7 +145,7 @@ hnp(model,
     ylab = "Deviance residuals")
 
 
-## Performing 10 "hnp" iterations to obtain a modal and a mean percentage of 
+## Performing 10 "hnp" iterations to obtain a modal and mean percentage of 
 ## residuals outside the simulated envelope for the same Gaussian GAMM with an
 ## adaptive smooth. The seed used is only for result reproducibility. This step
 ## can take several minutes to run. Note that given the result obtained in the
@@ -185,9 +184,9 @@ round(return_max(hnp_summary), 2)
 Summarize(hnp_summary)
 
 
-## Diagnostic half-normal plot of the deviance residuals using the hnp() 
-## function of "hnp" for the gamma distribution with a log link that uses
-## an adaptive *_AD* smooth.
+## Diagnostic half-normal plot with a simulated envelope of the deviance residuals
+## using the hnp() function of "hnp" for the gamma distribution with a log link that
+## also uses an adaptive *_AD* smooth.
 
 model <- m_TROUT_GAMMA_AD
 family = Gamma(link = "log")
