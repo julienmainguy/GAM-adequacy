@@ -81,7 +81,8 @@ sfun <- function(n,obj) {
  }
 
 ffun <- function(resp) {
-      gam(resp ~ s(YEAR) + D1AUG + DEPTH + s(TURBID) + s(AREA, bs = "re"),
+      gam(resp ~ s(YEAR) + s(CONDUCT) + s(D1AUG) + s(DEPTH) +
+          s(EFFORT) + s(TEMP) + s(TURBID) + s(AREA, bs = "re"),
           family = family,
           method = method,
           data = data)
