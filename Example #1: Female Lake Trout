@@ -30,7 +30,7 @@ BICc <- function (obj) {
 
 url <- "https://raw.githubusercontent.com/julienmainguy/GAM-adequacy/refs/heads/main/TROUT"
 TROUT <- read.delim(url)
-points(TL ~ AGE, data = TROUT, pch = 19)
+
 
 ############## GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ################
 
@@ -54,7 +54,7 @@ summary(m_TROUT_GAUSSIAN_TP)
 ## using "visreg", leading to its rejection since growth needs to be strictly monotonic.
 
 visreg(m_TROUT_GAUSSIAN_TP, scale = "response", "AGE")
-
+points(TL ~ AGE, data = TROUT, pch = 19)
 
 ## Below, an alternative Gaussian GAMM with an adaptive smooth *_AD* is fitted instead using
 ## the ML method in "mgcv" and with the default k = 10 increased to 20 to further penalize
@@ -74,7 +74,7 @@ summary(m_TROUT_GAUSSIAN_AD)
 ## The fit is improved and now monotonic, as shown from using "visreg"
 
 visreg(m_TROUT_GAUSSIAN_AD, scale = "response", "AGE")
-
+points(TL ~ AGE, data = TROUT, pch = 19)
 
 ## Lastly, a Gamma distribution with a log link is used instead because the variation in
 ## fish total length (TL) often increases with age, such the variance may be better 
@@ -93,6 +93,7 @@ summary(m_TROUT_GAMMA_AD)
 ## The fit is also monotonic, as shown from using "visreg"
 
 visreg(m_TROUT_GAMMA_AD, scale = "response", "AGE")
+points(TL ~ AGE, data = TROUT, pch = 19)
 
 
 ################################# MODEL ADEQUACY ###################################
