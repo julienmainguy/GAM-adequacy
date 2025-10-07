@@ -30,7 +30,7 @@ BICc <- function (obj) {
 
 url <- "https://raw.githubusercontent.com/julienmainguy/GAM-adequacy/refs/heads/main/TROUT"
 TROUT <- read.delim(url)
-
+points(TL ~ AGE, data = TROUT, pch = 19)
 
 ############## GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ################
 
