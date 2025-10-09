@@ -26,8 +26,7 @@ BICc <- function (obj) {
 #### EXAMPLE 2: CPUE TEMPORAL TREND OF SMALL ST. LAWRENCE RIVER WALLEYES #######
 ################################################################################
 
-
-################### GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ######################
+################# GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ###############
 
 ## Poisson GAMM with the default settings for the smooth function, s(), for all
 ## predictors, i.e. using thin-plate regression splines (bs = "tp") and k = 10, with
@@ -44,12 +43,12 @@ m_WALLEYE_POISSON_FULL <- gam(N ~ s(YEAR) + s(CONDUCT) + s(D1AUG) + s(DEPTH)
 summary(m_WALLEYE_POISSON_FULL)
 
 
-## Check for likely overdispersion issues (see text) in the Poisson GAMM.
+## Check for likely overdispersion (Poisson GAMM)
 
 check_overdispersion(m_WALLEYE_POISSON_FULL)
 
 
-## Check for zero-inflation issues (see text) in the Poisson GAMM.
+## Check for zero-inflation issues (Poisson GAMM)
 
 check_zeroinflation(m_WALLEYE_POISSON_FULL)
 
@@ -57,9 +56,9 @@ check_zeroinflation(m_WALLEYE_POISSON_FULL)
 ## The fully-parameterized Poisson GAMM is not modeling sufficiently equi-dispersed
 ## counts and is probably underfitting zeros, such that it cannot be considered as being
 ## adequate and is thus discarded. This can be easily confirmed by looking at a single
-## half-normal plot with a simulated envelope. This can take many seconds to run. Using
+## half-normal plot with a simulated envelope which can take many seconds to run. Using
 ## 10 iterations instead (not shown) just simply confirm the complete inadequacy of this
-## Poisson GAMM, but a sole diaganotic plot suffices in such case, as done below.
+## Poisson GAMM, but here a sole diaganotic plot suffices in such case, as done below.
 
 model <- m_WALLEYE_POISSON_FULL
 family <- poisson
@@ -150,7 +149,7 @@ summary(m_WALLEYE_NB2_FINAL)
 ## Check if overdispersion and zero-inflation were sufficiently accounted for in
 ## the retained final NB2 GAMM, which can only be done for the one built in 
 ## "mgcv" when the NB2 extension is used. Note that for the zero-inflation test,
-## a p-value is provided when the NB2 extension is used.
+## a p-value is provided when the NB2 extension is employed.
 
 check_overdispersion(m_WALLEYE_NB2_FINAL)
 
@@ -271,13 +270,6 @@ cbind(mgcViz_score, lower_ui, upper_ui)
 
 
 ######################################## MODEL SELECTION ####################################
-
-## Using the compareML() function of "itsadug" indicates that the final NB2 GAMM offers
-## an equivalent fit to that of the initial fully-parameterized counterpart despite being much
-## less complex, as captured by the Estimated degrees of freedom (Edf).
-
-compareML(m_WALLEYE_NB2_FINAL, m_WALLEYE_NB2_FULL)
-
 
 ## Comparing these same two models under an information-theoretic approach indicates that the
 ## final NB2 GAMM is much more parsimonious than its fully-parameterized counterpart using the
