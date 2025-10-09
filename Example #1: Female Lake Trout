@@ -1,15 +1,15 @@
+## This example requires the TROUT dataset (continuous response variable)
+
 ## Required packages:
 
 library(FSA)
 library(hnp)
-library(itsadug)
 library(mgcv)
 library(mgcViz)
 library(MuMIn)
 library(performance)
 library(tidyverse)
 library(visreg)
-
 
 ## Create a function for the calculation of the sample-adjusted BIC (BICc)
 
@@ -21,22 +21,14 @@ BICc <- function (obj) {
   return(bicc)
 }
 
-
 ################################################################################
 ######## EXAMPLE 1: LENGTH-AT-AGE RELATIONSHIP IN FEMALE LAKE TROUT ############
 ################################################################################
 
-## Load the TROUT dataset as an example with a continuous response variable 
-
-url <- "https://raw.githubusercontent.com/julienmainguy/GAM-adequacy/refs/heads/main/TROUT"
-TROUT <- read.delim(url)
-
-
 ############## GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ################
 
-## Fitting the Gaussian distribution, as done for the nonlinear mixed-effects von 
-## Bertalanffy growth model, to a GAMM with the default parametrization for s(),
-## such that it is identified with *_TP* from using thin-plate regression splines.
+## Fitting the Gaussian distribution to a GAMM with the default parametrization for
+## s() such that it is identified with *_TP* from using thin-plate regression splines.
 ## Note that s(AGE, bs = "tp", k = 10) is equivalent to just using s(AGE), whereas
 ## family = gaussian(link = "identity") is the same as using family = gaussian.
 
@@ -52,14 +44,16 @@ summary(m_TROUT_GAUSSIAN_TP)
 
 ## Biologically-unrelialistic predictions are obtained from this first model, as shown from
 ## using "visreg", leading to its rejection since growth needs to be strictly monotonic.
+## See also Fig. 1a in the manuscript.
 
 visreg(m_TROUT_GAUSSIAN_TP, scale = "response", "AGE")
 points(TL ~ AGE, data = TROUT, pch = 19)
 
+
 ## Below, an alternative Gaussian GAMM with an adaptive smooth *_AD* is fitted instead using
-## the ML method in "mgcv" and with the default k = 10 increased to 20 to further penalize
+## the ML method in "mgcv" with the default k = 10 increased to 20 to further penalize
 ## against wiggliness. Using k = 20 is possible given that the TROUT dataset contains
-## 37 distinct AGE values.
+## 37 distinct AGE values, as indicated from using the n_distinct() function of "tidyverse".
 
 n_distinct(TROUT$AGE)
 
@@ -77,10 +71,10 @@ visreg(m_TROUT_GAUSSIAN_AD, scale = "response", "AGE")
 points(TL ~ AGE, data = TROUT, pch = 19)
 
 ## Lastly, a Gamma distribution with a log link is used instead because the variation in
-## fish total length (TL) often increases with age, such the variance may be better 
-## modeled as a function of the mean (i.e., proportional). Note that using *family = Gamma*
-## will use an inverse link function as a default setting, such that indicating 
-## *family = Gamma(link = "log")* is required for fitting a log link function instead.
+## fish length (TL) often increases with age, such the variance may be better modeled as
+## a function of the mean (i.e., proportional). Note that using *family = Gamma* will use
+## an inverse link function (default), such that indicating *family = Gamma(link = "log")*
+## is required for fitting a log link function instead.
 
 m_TROUT_GAMMA_AD <- gam(TL ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re"),
                         family = Gamma(link = "log"),
@@ -90,7 +84,7 @@ m_TROUT_GAMMA_AD <- gam(TL ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re"),
 summary(m_TROUT_GAMMA_AD)
 
 
-## The fit is also monotonic, as shown from using "visreg"
+## The fit is also monotonic, as shown from using "visreg" and in Fig. 1b of the manuscript.
 
 visreg(m_TROUT_GAMMA_AD, scale = "response", "AGE")
 points(TL ~ AGE, data = TROUT, pch = 19)
@@ -99,11 +93,12 @@ points(TL ~ AGE, data = TROUT, pch = 19)
 ################################# MODEL ADEQUACY ###################################
 
 ## Diagnostic plots with the gam.check() function of "mgcv" for the Gaussian GAMM
-## with an adaptive smooth. Note that the deviance residuals are expected to be
-## normally distributed and homoscedastic for this distribution family, but this is
-## not the case for the gamma distribution with a log link. For the latter, the QQ plot
-## is considered helpful for adequacy assessment purposes. For the Gaussian GAMM, note
-## in the top-right plot (Resids vs. linear pred.) the cone-shaped heteroscedasticity.
+## with an adaptive smooth are first examined. Note that the deviance residuals are
+## expected to be normally distributed and homoscedastic for this distribution family,
+## but this is not the case for the gamma distribution with a log link. For the latter,
+## the QQ plot is considered helpful for adequacy assessment purposes. For the Gaussian
+## GAMM, note in the top-right plot (Resids vs. linear pred.) the quite obvious cone-shaped
+## heteroscedasticity.
 
 gam.check(m_TROUT_GAUSSIAN_AD)
 
@@ -171,13 +166,14 @@ for (i in 1:n) {
 hnp_summary <- sapply(hnp_obj, function(x) x$out / x$total * 100) 
 
 
-## Modal percentage of residuals outside the simulated envelope
+## Modal percentage of residuals found outside the simulated envelope
 
 return_max <- function(numvec) {
   dens <- density(numvec)
   return(dens$x[which.max(dens$y)][1])
 }
 round(return_max(hnp_summary), 2)
+
 
 ## Mean percentage of residuals outside the simulated envelope with other
 ## descriptive statistics using the Summarize() function of "FSA".
@@ -241,11 +237,13 @@ for(i in 1:n) {
 
 hnp_summary <- sapply(hnp_obj, function(x) x$out / x$total * 100) 
 
+
 return_max <- function(numvec) {
   dens <- density(numvec)
   return(dens$x[which.max(dens$y)][1])
 }
 round(return_max(hnp_summary), 2)
+
 
 Summarize(hnp_summary)
 
@@ -327,19 +325,13 @@ cbind(mgcViz_score, lower_ui, upper_ui)
 
 ############################## MODEL SELECTION ###################################
 
-## Compare Maximum Likelihood (ML) scores while accounting for model complexity (Edf) 
-## for the two candidates GAMMs using the compareML() function of "itsadug". The GAMMs
-## being compared must share the same random structure if one is used. The order of the
-## listed models is inconsequetial. Note that the delta AIC is also provided.
-
-compareML(m_TROUT_GAUSSIAN_AD, m_TROUT_GAMMA_AD)
-
-
 ## Compare the two candidate gamma GAMMs fitted in "mgcv" based on BICc under
 ## an information-theoretic approach using the model.sel() function of "MuMIn".
 
 model.sel(m_TROUT_GAUSSIAN_AD, m_TROUT_GAMMA_AD, rank = BICc)
 
+
+######################## REFIT GAMM WITH REML ESTIMATION ##########################
 
 ## Refit the gamma GAMM using an adaptive smooth with REML estimation in "mgcv"
 
@@ -351,11 +343,11 @@ m_TROUT_GAMMA_AD_REML <- gam(TL ~ s(AGE, bs = "ad", k = 20) + s(LAKE, bs = "re")
 summary(m_TROUT_GAMMA_AD_REML)
 
 
-######################## "IN-SAMPLE" PREDICTIVE PERFORMANCE #####################
+######################## "IN-SAMPLE" PREDICTIVE PERFORMANCE ########################
 
 ## Estimate the deviance explained (D2) and its adjusted version (D2_adj) for
 ## the preferred gamma GAMM. Note here that K (i.e., number of parameters) corresponds
-## to the sum of df and edf as estimated by "mgcv" from using the logLik() function.
+## to the combined df and edf as estimated by "mgcv" from using the logLik() function.
 
 model <- m_TROUT_GAMMA_AD_REML
 
@@ -369,7 +361,7 @@ round(cbind(D2, D2_adj), 1)
 
 ############################# MODEL PREDICTIONS ##################################
 
-## Predictions from the best-retained gamma GAMM with REML estimation (Fig. 1c).
+## Predictions from the best-retained gamma GAMM with REML estimation (Fig. 1b).
 ## Note that the predictions are at the log scale, such that exponentiation of the
 ## predictions is required for their visualization at the response scale.
 
