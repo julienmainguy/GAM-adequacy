@@ -8,7 +8,7 @@
 ## are described in the main text (i.e., TROUT, WALLEYE, and CHARR data) with the code made
 ## available here in the same repository (i.e., GAM-adequacy).
 
-## The "hnp" package cannot currently be used to assess the adequacy of GAMs fitted in "mgcv".
+## The "hnp" package was not able up to now to assess the adequacy of GAMs fitted in "mgcv".
 ## Three helper functions, namely dfun(), sfun(), and ffun(), can jointly be employed to allow
 ## to make this possible, therefore providing an additional adequacy assessment tool for "mgcv".
 
@@ -79,7 +79,7 @@ sfun <- function(n, obj) {
 ## will then be used in the hnp() function of "hnp" to yield a half-normal plot with a simulated
 ## envelope for adequacy assessment purposes. The ffun() function is specific to the fitted GAM.
 
-## The following steps must be followed:
+## The simple following steps must be followed:
 
 ## First, define the specifications of the fitted model for later use with the helper functions
 
@@ -109,18 +109,16 @@ sfun <- function(n, obj) {
 
 ##  ffun <- function(resp) {
 ##    gam(resp ~ s(X1) + s(X2, bs = "re") ## INSERT HERE, AS AN EXAMPLE
-##        family = family,                ## as defined above
-##        method = method,                ## as defined above
-##        data = data)                    ## as defined above
+##        family = family,                ## already defined above
+##        method = method,                ## already defined above
+##        data = data)                    ## already defined abovee
 ##  }
 
 
-## The hnp() function can now be used to assess the adequacy of a GAM fitted with "mgcv" by relying on 
-## the three previously defined helper functions. Here, a single "hnp" iteration will be performed. Using
-## the argument *how.many.out = TRUE* will allow to indicate the percentage of residuals found outside
-## the simulated envelope of the half-normal plot. The corresponding half-normal plot will be shown with
-## the argument *plot = TRUE*. The argument *paint = TRUE* will show in red the residuals that are found
-## outside the simulated envelope.
+## Here, a single "hnp" iteration will be performed. Using the argument *how.many.out = TRUE* will allow
+## to indicate the percentage of residuals found outside the simulated envelope of the half-normal plot. 
+## The corresponding half-normal plot will be shown with the argument *plot = TRUE*. Lastly, the argument
+## *paint = TRUE* will show in red the residuals that are found outside the simulated envelope.
 
 ## hnp(model,
 ##     newclass = TRUE, 
@@ -164,7 +162,7 @@ sfun <- function(n, obj) {
 ## hnp_summary <- sapply(hnp_obj, function(x) x$out / x$total * 100) 
 
 
-## The modal percentage (asymptotic value) from the associated density curve is first obtained:
+## The modal percentage (asymptotic value) from a density curve is first obtained:
 
 ##  return_max <- function(numvec) {
 ##        dens <- density(numvec)
@@ -177,4 +175,3 @@ sfun <- function(n, obj) {
 ## function of "FSA":
 
 ##  Summarize(hnp_summary)
-
