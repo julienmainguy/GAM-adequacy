@@ -44,10 +44,9 @@ m_CHARR_BI_REML <- gam(cbind(YES, TOTAL - YES) ~ BIN50 + s(RIVER, bs = "re"),
 
 summary(m_CHARR_BI_REML)
 
+
 ## Estimate the L50 using the fixed effects, where b0 is the intercept coefficient
-## and b1 is the coefficient associated to BIN50 (i.e., slope). The equation used
-## to estimate the L50 when a cloglog link is used is detailed in the Supplementary
-## Material of Mainguy et al. (2024).
+## and b1 is the coefficient associated to BIN50 (i.e., slope).
 
 b0 <- coef(m_CHARR_BI_REML)[[1]]
 b1 <- coef(m_CHARR_BI_REML)[[2]]
@@ -161,7 +160,7 @@ upper_ui <- (quantile(summary_mgcViz, probs = 0.975))[[1]]
 cbind(mgcViz_score, lower_ui, upper_ui)
 
 
-## Test for overdispersion and zero-inflation with "DHARMa" instead of "performance"
+## Test for overdispersion and zero-inflation with "DHARMa"
 
 ## simulate model-based randomized quantile residuals
 
@@ -203,6 +202,8 @@ round(cbind(D2, D2_adj), 1)
 
 ################################ MODEL PREDICTIONS #######################################
 
+## See Fig. 3a of the manuscript.
+
 nd_CHARR <- data.frame(BIN50 = seq(175, 675, by = 1), RIVER = "NA")
 
 model <- m_CHARR_BI_REML
@@ -220,3 +221,6 @@ upper <- 1 - exp(-exp(fitted$fit + 1.96 * fitted$se.fit))
 bin50 <- nd_CHARR$BIN50
 cbind(bin50, pred, lower, upper)
 
+## River-specific predictions can be obtained by indicating in the new data the name of the river
+## instead of NA, ideally using the range of observed values, and by deleting the *exclude = s(RIVER)"
+## argument from the predict() function to get the fitted values (not shown)
