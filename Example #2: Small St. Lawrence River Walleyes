@@ -1,8 +1,9 @@
+## This example requires the WALLEYE dataset (count response variable)
+
 ## Required packages:
 
 library(FSA)
 library(hnp)
-library(itsadug)
 library(mgcv)
 library(mgcViz)
 library(MuMIn)
@@ -25,18 +26,11 @@ BICc <- function (obj) {
 #### EXAMPLE 2: CPUE TEMPORAL TREND OF SMALL ST. LAWRENCE RIVER WALLEYES #######
 ################################################################################
 
-## Load the WALLEYE dataset as an example with counts 
-
-file_name <- 
-"https://raw.githubusercontent.com/julienmainguy/GAM-adequacy/main/WALLEYE"
-
-WALLEYE <- read.delim(file_name)
-
 
 ################### GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ######################
 
 ## Poisson GAMM with the default settings for the smooth function, s(), for all
-## predictors, i.e., the use of thin-plate regression splines (bs = "tp") and k = 10, with
+## predictors, i.e. using thin-plate regression splines (bs = "tp") and k = 10, with
 ## Maximum Likelihood (ML) estimation and AREA fitted as a random effect in "mgcv".
 
 WALLEYE$AREA <- as.factor(WALLEYE$AREA)
