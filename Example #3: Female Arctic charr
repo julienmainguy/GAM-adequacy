@@ -1,9 +1,10 @@
+## This example requires the CHARR dataset (response variable = discrete proportions)
+
 ## Required packages:
 
 library(DHARMa)
 library(FSA)
 library(hnp)
-library(itsadug)
 library(MASS)
 library(mgcv)
 library(mgcViz)
@@ -11,26 +12,16 @@ library(MuMIn)
 library(performance)
 library(tidyverse)
 
+####################################################################################
+########## EXAMPLE 3: SPAWNING PROBABILITY OF ARCTIC CHARR FEMALES #################
+####################################################################################
 
-################################################################################
-########## EXAMPLE 3: SPAWNING PROBABILITY OF ARCTIC CHARR FEMALES #############
-################################################################################
-
-## Load the CHARR dataset as an example with discrete proportions 
-
-file_name <- 
-"https://raw.githubusercontent.com/julienmainguy/GAM-adequacy/main/CHARR"
-
-CHARR <- read.delim(file_name)
-
-
-################### GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ###################
+################### GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) #############
 
 ## A binomial (BI) GAMM is fitted in "mgcv" with a complementary log-log (cloglog)
-## link, which was previously used to model these data as Bernoulli trials (0/1)
-## by Mainguy et al. (2025b). A smooth function is applied to BIN50 to check
-## if additional non-linearities are present in the binomial regression curve
-## from modeling the same data as discrete proportions instead.
+## link. A smooth function is applied to BIN50 to check if additional non-linearities
+## could be added in the sigmoidal regression curve from modeling these discrete
+## proportions.
 
 CHARR$RIVER <- as.factor(CHARR$RIVER)
 
