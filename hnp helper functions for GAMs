@@ -5,7 +5,7 @@
 ## NOTE
 ## Only explanations about the use of the helper functions for "hnp" are provided below, such
 ## that the application of these helper functions with "hnp" can be done with the examples that
-## are described in the main text (i.e., TROUT, WALLEYE, and CHARR data) with the code made
+## are described in the main text (i.e., TROUT, WALLEYE, and CHARR data) with the scripts made
 ## available here in the same repository (i.e., GAM-adequacy).
 
 ## The "hnp" package was not able up to now to assess the adequacy of GAMs fitted in "mgcv".
