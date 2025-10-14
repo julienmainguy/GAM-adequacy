@@ -1,4 +1,4 @@
-## This example requires the CHARR dataset (response variable = discrete proportions)
+## This example requires the CHARR dataset (response variable: discrete proportions)
 
 url <- "https://raw.githubusercontent.com/julienmainguy/GAM-adequacy/refs/heads/main/CHARR"
 CHARR <- read.delim(url)
