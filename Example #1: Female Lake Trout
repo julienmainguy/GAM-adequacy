@@ -55,6 +55,7 @@ summary(m_TROUT_GAUSSIAN_TP)
 visreg(m_TROUT_GAUSSIAN_TP, scale = "response", "AGE")
 points(TL ~ AGE, data = TROUT, pch = 19)
 
+
 ## Below, an alternative Gaussian GAMM with an adaptive smooth *_AD* is fitted instead, again
 ## using the ML method in "mgcv" with the default k = 10, as specified below.
 
