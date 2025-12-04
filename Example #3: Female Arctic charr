@@ -1,31 +1,35 @@
-## This example requires the CHARR dataset (response variable: discrete proportions)
-
-url <- "https://raw.githubusercontent.com/julienmainguy/GAM-adequacy/refs/heads/main/CHARR"
-CHARR <- read.delim(url)
-
-
 ## Required packages:
 
 library(DHARMa)
 library(FSA)
 library(hnp)
+library(itsadug)
 library(MASS)
 library(mgcv)
 library(mgcViz)
 library(MuMIn)
-library(performance)
 library(tidyverse)
 
-####################################################################################
-########## EXAMPLE 3: SPAWNING PROBABILITY OF ARCTIC CHARR FEMALES #################
-####################################################################################
 
-################### GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) #############
+################################################################################
+########## EXAMPLE 3: SPAWNING PROBABILITY OF FEMALE ARCTIC CHARR  #############
+################################################################################
+
+## Load the CHARR dataset as an example with discrete proportions 
+
+file_name <- 
+"https://raw.githubusercontent.com/julienmainguy/GAM-adequacy/main/CHARR"
+
+CHARR <- read.delim(file_name)
+
+
+################### GENERALIZED ADDITIVE MIXED-EFFECTS MODELING (GAMM) ###################
 
 ## A binomial (BI) GAMM is fitted in "mgcv" with a complementary log-log (cloglog)
-## link. A smooth function is applied to BIN50 to check if additional non-linearities
-## could be added in the sigmoidal regression curve from modeling these discrete
-## proportions.
+## link, which was previously used to model these data as Bernoulli trials (0/1)
+## by Mainguy et al. (2025b). A smooth function is applied to BIN50 to check
+## if additional non-linearities are present in the binomial regression curve
+## from modeling the same data as discrete proportions instead.
 
 CHARR$RIVER <- as.factor(CHARR$RIVER)
 
@@ -48,9 +52,10 @@ m_CHARR_BI_REML <- gam(cbind(YES, TOTAL - YES) ~ BIN50 + s(RIVER, bs = "re"),
 
 summary(m_CHARR_BI_REML)
 
-
 ## Estimate the L50 using the fixed effects, where b0 is the intercept coefficient
-## and b1 is the coefficient associated to BIN50 (i.e., slope).
+## and b1 is the coefficient associated to BIN50 (i.e., slope). The equation used
+## to estimate the L50 when a cloglog link is used is detailed in the Supplementary
+## Material of Mainguy et al. (2024).
 
 b0 <- coef(m_CHARR_BI_REML)[[1]]
 b1 <- coef(m_CHARR_BI_REML)[[2]]
@@ -173,15 +178,19 @@ simulationOutput <- simulateResiduals(fittedModel = m_CHARR_BI_REML)
 
 ## Check for overdispersion
 
-testDispersion(simulationOutput)
+testDispersion(simulationOutput, alternative = "two.sided", plot = FALSE)
+
+## Specifically check for overdispersion with a one-sided test using alternative = "greater"
+
+
+testDispersion(simulationOutput, alternative = "greater", plot = FALSE)
 
 
 ## Check for zero-inflation (using the same simulationOutput as above)
 
 ## Zero-inflation test
 
-testZI <- testZeroInflation(simulationOutput)
-testZI
+(testZI <- testZeroInflation(simulationOutput, alternative = "two.sided", plot = FALSE))
 
 ## Obtain the simulated-to-observed zero (i.e., ratioSimObs) ratio
 
@@ -206,8 +215,6 @@ round(cbind(D2, D2_adj), 1)
 
 ################################ MODEL PREDICTIONS #######################################
 
-## See Fig. 3a of the manuscript.
-
 nd_CHARR <- data.frame(BIN50 = seq(175, 675, by = 1), RIVER = "NA")
 
 model <- m_CHARR_BI_REML
@@ -225,6 +232,3 @@ upper <- 1 - exp(-exp(fitted$fit + 1.96 * fitted$se.fit))
 bin50 <- nd_CHARR$BIN50
 cbind(bin50, pred, lower, upper)
 
-## River-specific predictions can be obtained by indicating in the new data the name of the river
-## instead of NA, ideally using the range of observed values, and by deleting the *exclude = s(RIVER)"
-## argument from the predict() function to get the fitted values (not shown)
