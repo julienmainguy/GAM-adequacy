@@ -3,6 +3,7 @@
 ###############################################################################################
 
 ## NOTE
+
 ## Only explanations about the use of the helper functions for "hnp" are provided below, such
 ## that the application of these helper functions with "hnp" can be done with the examples that
 ## are described in the main text (i.e., TROUT, WALLEYE, and CHARR data) with the scripts made
@@ -162,7 +163,7 @@ sfun <- function(n, obj) {
 ## hnp_summary <- sapply(hnp_obj, function(x) x$out / x$total * 100) 
 
 
-## The modal percentage (asymptotic value) from a density curve is first obtained:
+## The modal percentage (asymptotic value) is first obtained from a density curve:
 
 ##  return_max <- function(numvec) {
 ##        dens <- density(numvec)
@@ -171,7 +172,7 @@ sfun <- function(n, obj) {
 ##  round(return_max(hnp_summary), 2)
 
 
-## The descriptive statistics, including the mean percentage, is also obtained using the Summarize() 
-## function of "FSA":
+## The descriptive statistics, including the mean percentage, are also obtained using the 
+## Summarize() function of "FSA":
 
 ##  Summarize(hnp_summary)
