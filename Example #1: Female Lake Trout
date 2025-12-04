@@ -6,7 +6,6 @@ library(itsadug)
 library(mgcv)
 library(mgcViz)
 library(MuMIn)
-library(performance)
 library(tidyverse)
 library(visreg)
 
