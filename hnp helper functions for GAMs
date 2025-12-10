@@ -112,7 +112,7 @@ sfun <- function(n, obj) {
 ##    gam(resp ~ s(X1) + s(X2, bs = "re") ## INSERT HERE, AS AN EXAMPLE
 ##        family = family,                ## already defined above
 ##        method = method,                ## already defined above
-##        data = data)                    ## already defined abovee
+##        data = data)                    ## already defined above
 ##  }
 
 
