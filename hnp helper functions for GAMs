@@ -109,10 +109,10 @@ sfun <- function(n, obj) {
 ## Y ~ s(X1) + s(X2, bs = "re") and the right-hand side therefore be s(X1) + s(X2, bs = "re"):
 
 ##  ffun <- function(resp) {
-##    gam(resp ~ s(X1) + s(X2, bs = "re") ## INSERT HERE, AS AN EXAMPLE
-##        family = family,                ## already defined above
-##        method = method,                ## already defined above
-##        data = data)                    ## already defined above
+##    gam(resp ~ s(X1) + s(X2, bs = "re"), ## INSERT HERE, AS AN EXAMPLE
+##        family = family,                 ## already defined above
+##        method = method,                 ## already defined above
+##        data = data)                     ## already defined above
 ##  }
 
 
