@@ -57,7 +57,7 @@ points(TL ~ AGE, data = TROUT, pch = 19)
 
 
 ## Below, an alternative Gaussian GAMM with an adaptive smooth *_AD* is fitted instead, again
-## using the ML method in "mgcv" with the default k = 10, as specified below.
+## using the ML method in "mgcv" with k = 10, as specified below.
 
 m_TROUT_GAUSSIAN_AD <- gam(TL ~ s(AGE, bs = "ad", k = 10) + s(LAKE, bs = "re"),
                            family = gaussian(link = "identity"),
