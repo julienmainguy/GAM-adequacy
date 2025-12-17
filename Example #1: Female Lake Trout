@@ -69,15 +69,16 @@ summary(m_TROUT_GAUSSIAN_AD)
 
 ## The fit is improved and now monotonic, as shown from using "visreg"
 
-visreg(m_TROUT_GAUSSIAN_AD, scale = "response", "AGE")
+visreg(m_TROUT_GAUSSIAN_AD, scale = "response", "AGE", rug = FALSE)
 points(TL ~ AGE, data = TROUT, pch = 19)
+
 
 ## Lastly, a Gamma distribution with a log link is used instead because the variation in
 ## fish total length (TL) often increases with age, such that the variance may be better 
 ## modeled as a function of the mean (i.e., proportional). Note that using *family = Gamma*
 ## will use an inverse link function as a default setting, such that indicating 
 ## *family = Gamma(link = "log")* is required for fitting a log link function instead.
-## The default k = 10 is again used, as specified below.
+## k = 10 is again used, as specified below.
 
 m_TROUT_GAMMA_AD <- gam(TL ~ s(AGE, bs = "ad", k = 10) + s(LAKE, bs = "re"),
                         family = Gamma(link = "log"),
@@ -89,7 +90,7 @@ summary(m_TROUT_GAMMA_AD)
 
 ## The fit is also monotonic, as shown from using "visreg"
 
-visreg(m_TROUT_GAMMA_AD, scale = "response", "AGE")
+visreg(m_TROUT_GAMMA_AD, scale = "response", "AGE", rug = FALSE)
 points(TL ~ AGE, data = TROUT, pch = 19)
 
 
