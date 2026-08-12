@@ -53,7 +53,7 @@ summary(m_TROUT_GAUSSIAN_TP)
 ## using "visreg", leading to its rejection since growth needs to be strictly monotonic.
 
 visreg(m_TROUT_GAUSSIAN_TP, scale = "response", "AGE")
-points(TL ~ AGE, data = TROUT, pch = 19)
+## points(TL ~ AGE, data = TROUT, pch = 19) No longer possible to use the points() function with the last version of "visreg" to add observed data
 
 
 ## Below, an alternative Gaussian GAMM with an adaptive smooth *_AD* is fitted instead, again
@@ -70,7 +70,7 @@ summary(m_TROUT_GAUSSIAN_AD)
 ## The fit is improved and now monotonic, as shown from using "visreg"
 
 visreg(m_TROUT_GAUSSIAN_AD, scale = "response", "AGE", rug = FALSE)
-points(TL ~ AGE, data = TROUT, pch = 19)
+## points(TL ~ AGE, data = TROUT, pch = 19) No longer possible to use the points() function with the last version of "visreg" to add observed data
 
 
 ## Lastly, a Gamma distribution with a log link is used instead because the variation in
@@ -91,7 +91,7 @@ summary(m_TROUT_GAMMA_AD)
 ## The fit is also monotonic, as shown from using "visreg"
 
 visreg(m_TROUT_GAMMA_AD, scale = "response", "AGE", rug = FALSE)
-points(TL ~ AGE, data = TROUT, pch = 19)
+## points(TL ~ AGE, data = TROUT, pch = 19) No longer possible to use the points() function with the last version of "visreg" to add observed data
 
 
 ################################# MODEL ADEQUACY ###################################
