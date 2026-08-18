@@ -69,7 +69,7 @@ summary(m_TROUT_GAUSSIAN_AD)
 
 ## The fit is improved and now monotonic, as shown from using "visreg"
 
-p <- visreg(m_TROUT_GAUSSIAN_AD, scale = "response", "AGE", rug = FALSE)
+p <- visreg(m_TROUT_GAUSSIAN_AD, scale = "response", "AGE")
 p + geom_point(data = TROUT, aes(x = AGE, y = TL), color = "black")
 
 
@@ -90,8 +90,8 @@ summary(m_TROUT_GAMMA_AD)
 
 ## The fit is also monotonic, as shown from using "visreg"
 
-visreg(m_TROUT_GAMMA_AD, scale = "response", "AGE", rug = FALSE)
-## points(TL ~ AGE, data = TROUT, pch = 19) No longer possible to use the points() function with the last version of "visreg" to add observed data
+p <-visreg(m_TROUT_GAMMA_AD, scale = "response", "AGE")
+p + geom_point(data = TROUT, aes(x = AGE, y = TL), color = "black")
 
 
 ################################# MODEL ADEQUACY ###################################
