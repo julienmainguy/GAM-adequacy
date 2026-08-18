@@ -52,8 +52,8 @@ summary(m_TROUT_GAUSSIAN_TP)
 ## Biologically-unrelialistic predictions are obtained from this first model, as shown from
 ## using "visreg", leading to its rejection since growth needs to be strictly monotonic.
 
-visreg(m_TROUT_GAUSSIAN_TP, scale = "response", "AGE")
-## points(TL ~ AGE, data = TROUT, pch = 19) No longer possible to use the points() function with the last version of "visreg" to add observed data
+p <- visreg(m_TROUT_GAUSSIAN_TP, scale = "response", "AGE")
+p + geom_point(data = TROUT, aes(x = AGE, y = TL), color = "black")
 
 
 ## Below, an alternative Gaussian GAMM with an adaptive smooth *_AD* is fitted instead, again
