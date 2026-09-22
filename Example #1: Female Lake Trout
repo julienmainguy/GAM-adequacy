@@ -11,11 +11,13 @@ library(visreg)
 
 
 ## Create a function for the calculation of the sample-adjusted BIC (BICc)
+## Note that the BICc() function was modified on 2026-09-22 for the estimation 
+## of *n* and *p*
 
 BICc <- function (obj) {
   bic <- BIC(obj)
-  n <- obj$df.null + 1
-  p <- n - obj$df.residual
+  n <- nobs(obj)
+  p <- attr(logLik(obj), "df")
   bicc <- bic + (log(n) * (p + 1) * p)/(n - p - 1)
   return(bicc)
 }
